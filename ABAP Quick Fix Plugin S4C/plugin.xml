@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+      <extension
+              point="org.eclipse.ui.preferencePages">
+           <page
+           		 category="com.sap.adt.tools.core.ui.preferencePages.ABAP"
+                 class="de.leuc.adt.quickfix.preferences.QuickFixPreferences"
+                 id="de.leuc.adt.quickfix.preferences.QuickFixPreferences"
+                 name="Quick Fix S4">
+           </page>
+        </extension>
+      <extension
+              point="org.eclipse.ui.preferencePages">
+           <page
+                 category="com.sap.adt.tools.core.ui.preferencePages.ABAP"
+                 class="de.leuc.adt.quickfix.preferences.OrderPreferencesPage"
+                 id="de.leuc.adt.quickfix.preferences.OrderPreferencesPage"
+                 name="Quick Fix S4 - order by list2">
+           </page>
+        </extension>        
+        <extension 
+              point="org.eclipse.core.runtime.preferences">
+           <initializer 
+                 class="de.leuc.adt.quickfix.preferences.PreferenceInitializer"
+                 >
+           </initializer>
+        </extension>
+        <extension
+              point="com.abapblog.additional_quickfixes">
+           <client
+                 class="de.leuc.adt.quickfix.FixAppender">
+           </client>
+        </extension>
+        <extension
+              point="org.eclipse.ui.editors">
+        </extension>
+
+</plugin>
