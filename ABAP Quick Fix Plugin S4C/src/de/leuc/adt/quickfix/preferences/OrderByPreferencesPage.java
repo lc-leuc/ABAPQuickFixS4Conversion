@@ -1,19 +1,9 @@
 package de.leuc.adt.quickfix.preferences;
 
-/*************************************************************************************
- * Copyright (c) 2016 Red Hat, Inc. and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors:
- *     JBoss by Red Hat - Initial implementation.
- ************************************************************************************/
-
-import java.net.URI;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IStatus;
@@ -21,7 +11,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -47,26 +36,28 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-//import org.eclipse.wst.json.core.JSONCorePlugin;
-//import org.eclipse.wst.json.schemaprocessor.internal.JSONSchemaProcessor;
 
 import de.leuc.adt.quickfix.Activator;
-//import de.leuc.adt.quickfix.preferences.OrderPreferencesPage.EntryParser;
-//import de.leuc.adt.quickfix.preferences.OrderPreferencesPage.EntryDialog;
-//import de.leuc.adt.quickfix.preferences.OrderPreferencesPage.UserEntry;
-//import de.leuc.adt.quickfix.preferences.OrderPreferencesPage.UserEntries;
 
-public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
+public class OrderByPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 
     public class UserEntries {
-        private HashSet<UserEntry> set = new HashSet<UserEntry>();
+        private HashSet<OrderByPrefEntry> set = new HashSet<OrderByPrefEntry>();
 
-        public Set<UserEntry> getEntries() {
+        public Set<OrderByPrefEntry> getEntries() {
             return set;
         }
 
-        public void add(UserEntry entry) {
+        public void add(OrderByPrefEntry entry) {
             set.add(entry);
+        }
+        
+        public void remove(OrderByPrefEntry entry) {
+            set.remove(entry);
+        }
+        
+        public void clear() {
+            set.clear();
         }
 
     }
@@ -77,7 +68,7 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
         private Text table;
         private Text order;
 
-        public EntryDialog(Shell parentShell, UserEntry entry, UserEntries entries) {
+        public EntryDialog(Shell parentShell, OrderByPrefEntry entry, UserEntries entries) {
             super(parentShell);
             if (entry != null) {
                 tableMatch = entry.getTableMatch();
@@ -91,7 +82,7 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
         }
 
         public void setTableMatch(String tableMatch) {
-            tableMatch = tableMatch;
+            this.tableMatch = tableMatch;
         }
 
         public String getOrderBy() {
@@ -140,7 +131,6 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
         }
 
     }
-    
 
     private class TextConstants {
 
@@ -153,73 +143,42 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
 
     private TreeViewer viewer;
     private UserEntries entries;
-    private UserEntry selectedEntry;
+    private OrderByPrefEntry selectedEntry;
 
     public void init(IWorkbench workbench) {
     }
 
     @Override
     protected void performDefaults() {
-        String WBGT_ORDER = "doc_type, vbeln, posnr, posnr_sub, gjahr";
-        String WBHF_ORDER = "tkonn_from, tposn_from, tposn_sub_from, tkonn_to, tposn_to, tktyp_to";
-        String WBIT_ORDER = "doc_type, doc_nr, doc_year, item, sub_item";
-        String WBHD_ORDER = "tkonn, tposn, tposn_sub";
-        String ASSO_ORDER = "tew_type, assoc_step_from, rdoc_nr, rdoc_year, rdoc_bukrs, rposnr, rposnr_sub," 
-                           + "assoc_step_to, adoc_nr, adoc_year, adoc_bukrs, aposnr, aposnr_sub, rec_base";
-        String EKBE_ORDER = "ebeln ebelp zekkn vgabe gjahr belnr buzei";
-        String VBFA_ORDER = "vbelv, posnv, vbeln, posnn, vbtyp_n";
-        String EINE_ORDER = "infnr, ekorg, esokz, werks";
-        String KONV_ORDER = "knumv, kposn, stunr, zaehk ";
-        String MVKE_ORDER = "matnr, vkorg, vtweg";
-        String DRAD_ORDER = "dokar, doknr, dokvr, doktl, dokob, objky, obzae";
+        HashMap<String, String> defaults = new HashMap<String, String>();
+        entries.clear();
 
-        UserEntry ue = new UserEntry();
-        ue.setTableMatch("wbgt");
-        ue.setOrderBy(WBGT_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("wbhf");
-        ue.setOrderBy(WBHF_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("wbit");
-        ue.setOrderBy(WBIT_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("wbhd");
-        ue.setOrderBy(WBHD_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("wbassoc");
-        ue.setOrderBy(ASSO_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("ekbe");
-        ue.setOrderBy(EKBE_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("vbfa");
-        ue.setOrderBy(VBFA_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("eine");
-        ue.setOrderBy(EINE_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("konv");
-        ue.setOrderBy(KONV_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("mvke");
-        ue.setOrderBy(MVKE_ORDER);
-        entries.add(ue);
-        ue = new UserEntry();
-        ue.setTableMatch("drad");
-        ue.setOrderBy(DRAD_ORDER);
-        entries.add(ue);
+        defaults.put("wbgt", "doc_type, vbeln, posnr, posnr_sub, gjahr");
+        defaults.put("wbhf", "tkonn_from, tposn_from, tposn_sub_from, tkonn_to, tposn_to, tktyp_to");
+        defaults.put("wbit", "doc_type, doc_nr, doc_year, item, sub_item");
+        defaults.put("wbhd", "tkonn, tposn, tposn_sub");
+        defaults.put("ekbe", "ebeln ebelp zekkn vgabe gjahr belnr buzei");
+        defaults.put("vbfa", "vbelv, posnv, vbeln, posnn, vbtyp_n");
+        defaults.put("eine", "infnr, ekorg, esokz, werks");
+        defaults.put("konv", "knumv, kposn, stunr, zaehk ");
+        defaults.put("mvke", "matnr, vkorg, vtweg");
+        defaults.put("drad", "dokar, doknr, dokvr, doktl, dokob, objky, obzae");
+        defaults.put("wbassoc", "tew_type, assoc_step_from, rdoc_nr, rdoc_year, rdoc_bukrs, rposnr, rposnr_sub,"
+                + "assoc_step_to, adoc_nr, adoc_year, adoc_bukrs, aposnr, aposnr_sub, rec_base");
+
+        Iterator<String> it = defaults.keySet().iterator();
+        while (it.hasNext()) {
+            OrderByPrefEntry ue = new OrderByPrefEntry();
+            ue = new OrderByPrefEntry();
+            String element = it.next();
+            ue.setTableMatch(element);
+            ue.setOrderBy(defaults.get(element));
+            entries.add(ue);
+        }
 
         storePreferences();
         super.performDefaults();
+        viewer.refresh();
     }
 
     @Override
@@ -231,8 +190,8 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
     private void storePreferences() {
         IEclipsePreferences prefs = getPreferences();
         try {
-            String value = new EntryParser().serialize(entries.getEntries());
-            prefs.put(EntryParser.ADT_ORDERBY_ENTRIES, value);
+            String value = new OrderByPrefParser().serialize(entries.getEntries());
+            prefs.put(OrderByPrefParser.ADT_ORDERBY_ENTRIES, value);
             prefs.flush();
 //            Activator.getDefault().clearCatalogCache();
 //            JSONSchemaProcessor.clearCache();
@@ -243,7 +202,7 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
 
     public static IEclipsePreferences getPreferences() {
 //        IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-        IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode(EntryParser.ADT_ORDERBY_ENTRIES); //$NON-NLS-1$
+        IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode(OrderByPrefParser.ADT_ORDERBY_ENTRIES); // $NON-NLS-1$
         return preferences;
     }
 
@@ -270,7 +229,7 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
         viewer.setContentProvider(new EntriesContentProvider());
         viewer.setLabelProvider(new EntriesLabelProvider());
         entries = new UserEntries();
-        entries.getEntries().addAll(EntryParser.getUserEntries());
+        entries.getEntries().addAll(OrderByPrefParser.getUserEntries());
         viewer.setInput(entries);
         viewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         viewer.expandAll();
@@ -296,7 +255,7 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
                     String tableMatch = dialog.getTableMatch();
                     if (tableMatch != null) {
                         String orderBy = dialog.getOrderBy();
-                        UserEntry entry = new UserEntry();
+                        OrderByPrefEntry entry = new OrderByPrefEntry();
                         entry.setOrderBy(orderBy);
                         entry.setTableMatch(tableMatch);
                         entries.add(entry);
@@ -322,7 +281,7 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
                     String tableMatch = dialog.getTableMatch();
                     if (tableMatch != null) {
                         String orderBy = dialog.getOrderBy();
-                        UserEntry entry = selectedEntry;
+                        OrderByPrefEntry entry = selectedEntry;
                         entry.setTableMatch(tableMatch);
                         entry.setOrderBy(orderBy);
                         viewer.refresh();
@@ -343,7 +302,7 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
 
             public void widgetSelected(SelectionEvent e) {
                 if (selectedEntry != null) {
-                    entries.getEntries().remove(selectedEntry);
+                    entries.remove(selectedEntry);
                     viewer.refresh();
                 }
             }
@@ -363,8 +322,8 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
                 if (selection instanceof ITreeSelection) {
                     ITreeSelection treeSelection = (ITreeSelection) selection;
                     Object object = treeSelection.getFirstElement();
-                    if (object instanceof UserEntry) {
-                        selectedEntry = (UserEntry) object;
+                    if (object instanceof OrderByPrefEntry) {
+                        selectedEntry = (OrderByPrefEntry) object;
                         editButton.setEnabled(true);
                         removeButton.setEnabled(true);
                     }
@@ -379,7 +338,9 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
 
         public Object[] getChildren(Object parentElement) {
             if (parentElement instanceof UserEntries) {
-                return ((UserEntries) parentElement).getEntries().toArray();
+                Object[] os = ((UserEntries) parentElement).getEntries().toArray();
+                Arrays.sort(os);
+                return os;
             }
             return new Object[0];
         }
@@ -413,8 +374,8 @@ public class OrderPreferencesPage extends PreferencePage implements IWorkbenchPr
 
         @Override
         public String getText(Object element) {
-            if (element instanceof UserEntry) {
-                UserEntry entry = (UserEntry) element;
+            if (element instanceof OrderByPrefEntry) {
+                OrderByPrefEntry entry = (OrderByPrefEntry) element;
                 String result = entry.getTableMatch();
                 return result;
             }

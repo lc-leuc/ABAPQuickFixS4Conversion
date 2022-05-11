@@ -1,8 +1,5 @@
 package de.leuc.adt.quickfix.select;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -15,39 +12,24 @@ import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.move.MoveExact;
 
 import de.leuc.adt.quickfix.Activator;
-import de.leuc.adt.quickfix.preferences.EntryParser;
-import de.leuc.adt.quickfix.preferences.OrderPreferencesPage.UserEntries;
+import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
 import de.leuc.adt.quickfix.preferences.PreferenceConstants;
-import de.leuc.adt.quickfix.preferences.UserEntry;
 
 public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     private static final String ORDER_BY_PRIMARY_KEY = "order by primary key.";
-//    private static final String WBHI_ORDER = "order by tkonn, tposn.\n";
-//    private static final String WBGT_ORDER = "order by doc_type, vbeln, posnr, posnr_sub, gjahr. \"\" old key fields";
-//    private static final String WBHF_ORDER = "order by tkonn_from, tposn_from, tposn_sub_from, tkonn_to, tposn_to, tktyp_to.";
-//    private static final String WBIT_ORDER = "order by doc_type, doc_nr, doc_year, item, sub_item.";
-//    private static final String WBHD_ORDER = "order by tkonn, tposn, tposn_sub.";
-//    private static final String ASSO_ORDER1 = "order by tew_type, assoc_step_from, rdoc_nr, rdoc_year, rdoc_bukrs, rposnr, rposnr_sub,";
-//    private static final String ASSO_ORDER2 = "         assoc_step_to, adoc_nr, adoc_year, adoc_bukrs, aposnr, aposnr_sub, rec_base.";
-//    private static final String EKBE_ORDER = "order by ebeln ebelp zekkn vgabe gjahr belnr buzei.";
-//    private static final String VBFA_ORDER = "order by vbelv, posnv, vbeln, posnn, vbtyp_n.";
-//    private static final String EINE_ORDER = "order by  infnr, ekorg, esokz, werks.";
-//    private static final String KONV_ORDER = "order by knumv, kposn, stunr, zaehk. ";
-//    private static final String MVKE_ORDER = "order by matnr, vkorg, vtweg.";
-//    private static final String DRAD_ORDER = "order by dokar, doknr, dokvr, doktl, dokob, objky, obzae. \"#EC CI_FLDEXT_OK";
 
     private static final String selectPattern =
             // select single * from wbhk into @data(result) where tkonn = ''.
             // 1 2 3 4 5 6
             "(?s)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
 
-    private static final String replaceByNewSelectPattern1 = "select $3 from $4";
-    private static final String replaceByNewSelectPattern2 = "into $5";
-    private static final String replaceByNewSelectPattern3 = "up to 1 rows";
-    private static final String replaceByNewSelectPattern4 = "where";
-    private static final String replaceByNewSelectPattern5 = "  $6";
-    private static final String replaceByNewSelectPatternEnd = "endselect";
+    private static final String replaceByNewSelectPattern1 = "select $3 from $4\n";
+    private static final String replaceByNewSelectPattern2 = "into $5\n";
+    private static final String replaceByNewSelectPattern3 = "up to 1 rows\n";
+    private static final String replaceByNewSelectPattern4 = "where\n";
+    private static final String replaceByNewSelectPattern5 = "  $6\n";
+    private static final String replaceByNewSelectPatternEnd = "endselect\n";
     private String currentTable;
     /**
      * already contains line break
@@ -56,8 +38,8 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     private boolean comments = false;
     private int indent_number = 2;
 
-    public SelectSingle(IQuickAssistInvocationContext context) {
-        super(context);
+    public SelectSingle() {
+        super();
 
         IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode("org.eclipse.ui.editors");
         Boolean bool = preferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
@@ -102,9 +84,9 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public boolean canAssist() {
-        if (CodeReader.CurrentStatement.matchPattern(getMatchPattern()) && !(new MoveExact(context).canAssist())) {
+        if (CodeReader.CurrentStatement.matchPattern(getMatchPattern()) && !(new MoveExact().canAssist())) {
             // table name to decide on order by clause
-            currentTable = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$4").replaceAll("\\R", "").replaceAll("\s", "");
+            currentTable = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$4").replaceAll("\\R", "").replaceAll("\\s", "");
             // get current indentation for select, prefix with linebreak
             String temp = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$1");
             currentIndent = "\r\n".concat(temp.replaceAll("\\s*\\R", ""));// remove spaces
@@ -149,7 +131,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         // order by depends on table
         // several tables feature uuids as keys - use old key fields to order lines
         // order by primary key otherwise
-        String orderBy = EntryParser.getOrderBy(currentTable);
+        String orderBy = OrderByPrefParser.getOrderBy(currentTable);
         
         if (orderBy != null) {
             temp.append(currentIndent.concat(indent).concat("order by " + orderBy + "."));

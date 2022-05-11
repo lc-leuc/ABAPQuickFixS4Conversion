@@ -5,7 +5,7 @@
               point="org.eclipse.ui.preferencePages">
            <page
            		 category="com.sap.adt.tools.core.ui.preferencePages.ABAP"
-                 class="de.leuc.adt.quickfix.preferences.QuickFixPreferences"
+                 class="de.leuc.adt.quickfix.preferences.QuickFixS4CPreferences"
                  id="de.leuc.adt.quickfix.preferences.QuickFixPreferences"
                  name="Quick Fix S4">
            </page>
@@ -14,9 +14,9 @@
               point="org.eclipse.ui.preferencePages">
            <page
                  category="com.sap.adt.tools.core.ui.preferencePages.ABAP"
-                 class="de.leuc.adt.quickfix.preferences.OrderPreferencesPage"
+                 class="de.leuc.adt.quickfix.preferences.OrderByPreferencesPage"
                  id="de.leuc.adt.quickfix.preferences.OrderPreferencesPage"
-                 name="Quick Fix S4 - order by list2">
+                 name="Quick Fix S4 - Order-By List">
            </page>
         </extension>        
         <extension 
