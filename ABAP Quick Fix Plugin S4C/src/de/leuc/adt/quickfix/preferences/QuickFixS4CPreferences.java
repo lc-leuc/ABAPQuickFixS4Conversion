@@ -37,6 +37,7 @@ public class QuickFixS4CPreferences extends FieldEditorPreferencePage implements
 
         Group leuc_group = new Group(top, SWT.SHADOW_ETCHED_IN);
         leuc_group.setText("Comments and Indentations.");
+        addField(new BooleanFieldEditor(PreferenceConstants.NEW_STYLE, "&Use new style (2021)", leuc_group));
         addField(new BooleanFieldEditor(PreferenceConstants.ADD_COMMENTS, "&Add change comment line", leuc_group));
         addField(new BooleanFieldEditor(PreferenceConstants.COMMENT_OUT, "&Comment out original", leuc_group));
         addField(new org.eclipse.jface.preference.IntegerFieldEditor(PreferenceConstants.INDENT,

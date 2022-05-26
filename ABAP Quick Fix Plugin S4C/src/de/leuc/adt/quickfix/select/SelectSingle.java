@@ -1,15 +1,15 @@
 package de.leuc.adt.quickfix.select;
 
+import java.util.regex.Pattern;
+
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
-import com.abapblog.adt.quickfix.assist.syntax.statements.move.MoveExact;
 
 import de.leuc.adt.quickfix.Activator;
 import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
@@ -19,48 +19,77 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     private static final String ORDER_BY_PRIMARY_KEY = "order by primary key.";
 
+    /**
+     * Capturing Groups * 1 - leading line breaks * 2 - leading spaces * 3 - word
+     * "single" * 4 - field list * 5 - table * 6 - into-data statement * 7 - where
+     * statement
+     */
     private static final String selectPattern =
-            // select single * from wbhk into @data(result) where tkonn = ''.
-            // 1 2 3 4 5 6
-            "(?s)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
+            // dot is not part of the statement
+            // select single * from wbhk into @data(result) where tkonn = ''
+            // 1 2 3 4 5 6 7
+            "(?i)([\n\r]*)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
+//             "^(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
 
-    private static final String replaceByNewSelectPattern1 = "select $3 from $4\n";
-    private static final String replaceByNewSelectPattern2 = "into $5\n";
-    private static final String replaceByNewSelectPattern3 = "up to 1 rows\n";
-    private static final String replaceByNewSelectPattern4 = "where\n";
-    private static final String replaceByNewSelectPattern5 = "  $6\n";
-    private static final String replaceByNewSelectPatternEnd = "endselect\n";
+    private static final String targetSelectPatternStart = "select $4 from $5 into $6 up to 1 rows where $7 ";
+    private static final String targetSelectPatternEnd = "endselect";
+    private static final String modernTargetSelectPatternStart = "select from $5 fields $4 where $7";
+    private static final String modernTargetSelectPatternEnd = " into $6 up to 1 rows. endselect";
+
     private String currentTable;
     /**
      * already contains line break
      */
-    private String currentIndent;
+    private String leadingBreaks = "";
     private boolean comments = false;
     private int indent_number = 2;
 
     public SelectSingle() {
         super();
 
+        // todo: include formating rules
         IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode("org.eclipse.ui.editors");
         Boolean bool = preferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
                 true);
         int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
-        System.out.println("preferences are: " + bool + tabsno);
+
+        // System.out.println("preferences are: " + bool + tabsno);
     }
 
     @Override
     public String getChangedCode() {
-        String temp = CodeReader.CurrentStatement.replaceAllPattern("(.*)(\r\n)(.*)", "$1$3");
-        temp = temp.trim().replaceAll(" +", " "); // condense spaces
-        temp = temp.trim().replaceAll("\\R+", ""); // remove line breaks
+        String temp2 = CodeReader.CurrentStatement.getStatement().replaceAll(" ", "");
+
+        leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
+
+        String temp = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
+                                                                                           // characters
+        String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1");
+
         // line breaks are added automatically with the indentation prefix
-        String comentedOut = getCommentedOutStatement(CodeReader.CurrentStatement.getStatement());
-        return comentedOut.concat(temp.replaceFirst(getMatchPattern(), getReplacePattern()) );
+        String comentedOut = getCommentedOutStatement(temp);
+
+        temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
+        currentTable = temp.replaceFirst(getMatchPattern(), "$5");
+
+        String m = getMatchPattern();
+        String r = getReplacePattern();
+        String newString = temp.replaceFirst(m, r);
+        String[] s = split(newString.replaceAll("\\s\\s*", " ")); // remove multiple spaces
+        String statement = "";
+        for (String line : s) {
+            statement += format(line, originalIndentation);
+        }
+
+        String concat = leadingBreaks.concat(getCommentPrefix().concat(comentedOut.concat(statement)));
+        return concat;
     }
 
     private String getCommentedOutStatement(String in) {
         if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
-            return in.replaceAll("(\\R)", "$1*");
+            // String ls = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*select.*)","$1");
+            in = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*select.*)", "*$2");
+            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
         }
         return "";
     }
@@ -76,20 +105,22 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         return null;
     }
 
+    private static Image icon;
+
     @Override
     public Image getAssistIcon() {
-        // TODO Auto-generated method stub
-        return null;
+        if (icon == null) {
+            icon = Activator.imageDescriptorFromPlugin(Activator.PLUGIN_ID, "icons/qfs4c16.png").createImage();
+        }
+        return icon;
     }
 
     @Override
     public boolean canAssist() {
-        if (CodeReader.CurrentStatement.matchPattern(getMatchPattern()) && !(new MoveExact().canAssist())) {
+        String currentStatement = CodeReader.CurrentStatement.getStatement();
+        if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {// && !(new MoveExact().canAssist()))
+                                                                                  // {
             // table name to decide on order by clause
-            currentTable = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$4").replaceAll("\\R", "").replaceAll("\\s", "");
-            // get current indentation for select, prefix with linebreak
-            String temp = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$1");
-            currentIndent = "\r\n".concat(temp.replaceAll("\\s*\\R", ""));// remove spaces
 
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
@@ -119,50 +150,33 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public String getReplacePattern() {
-        String indent = getPrefix();
         StringBuffer temp = new StringBuffer();
-        temp.append(currentIndent.concat(getCommentPrefix()));
-        temp.append(currentIndent.concat(replaceByNewSelectPattern1));// select
-        temp.append(currentIndent.concat(indent).concat(replaceByNewSelectPattern2)); // into
-        temp.append(currentIndent.concat(indent).concat(replaceByNewSelectPattern3)); // up to 1 rows
-        temp.append(currentIndent.concat(indent).concat(replaceByNewSelectPattern4)); // where
-        temp.append(currentIndent.concat(indent).concat(replaceByNewSelectPattern5)); // statement
+        String endPattern = "";
+        boolean newStyle = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.NEW_STYLE);
 
+        if (newStyle) {
+            temp.append(modernTargetSelectPatternStart);
+            endPattern = modernTargetSelectPatternEnd;
+        } else {
+            temp.append(targetSelectPatternStart);
+            endPattern = targetSelectPatternEnd;
+        }
         // order by depends on table
         // several tables feature uuids as keys - use old key fields to order lines
+        // old keys are defined individually in the S4C preferences page
         // order by primary key otherwise
         String orderBy = OrderByPrefParser.getOrderBy(currentTable);
-        
+
         if (orderBy != null) {
-            temp.append(currentIndent.concat(indent).concat("order by " + orderBy + "."));
-//        } else if (currentTable.toLowerCase().contains("wbgt")) {
-//            temp.append(currentIndent.concat(indent).concat(WBGT_ORDER));
-//        } else if (currentTable.toLowerCase().contains("wbhf")) {
-//            temp.append(currentIndent.concat(indent).concat(WBHF_ORDER));
-//        } else if (currentTable.toLowerCase().contains("ekbe")) {
-//            temp.append(currentIndent.concat(indent).concat(EKBE_ORDER));
-//        } else if (currentTable.toLowerCase().contains("vbfa")) {
-//            temp.append(currentIndent.concat(indent).concat(VBFA_ORDER));
-//        } else if (currentTable.toLowerCase().contains("konv")) {
-//            temp.append(currentIndent.concat(indent).concat(KONV_ORDER));
-//        } else if (currentTable.toLowerCase().contains("drad")) {
-//            temp.append(currentIndent.concat(indent).concat(DRAD_ORDER));
-//        } else if (currentTable.toLowerCase().contains("mvke")) {
-//            temp.append(currentIndent.concat(indent).concat(MVKE_ORDER));
-//        } else if (currentTable.toLowerCase().contains("wbhd")) {
-//            temp.append(currentIndent.concat(indent).concat(WBHD_ORDER));
-//        } else if (currentTable.toLowerCase().contains("wbit")) {
-//            temp.append(currentIndent.concat(indent).concat(WBIT_ORDER));
-//        } else if (currentTable.toLowerCase().contains("eine")) {
-//            temp.append(currentIndent.concat(indent).concat(EINE_ORDER));
-//        } else if (currentTable.toLowerCase().contains("wbassoc")) {
-//            temp.append(currentIndent.concat(indent).concat(ASSO_ORDER1 + currentIndent + ASSO_ORDER2));
-////		} else if(currentTable.toLowerCase().contains("")){
-////			temp.append( currentIndent.concat("  ") );
+            temp.append("order by " + orderBy);
         } else {
-            temp.append(currentIndent.concat(indent).concat(ORDER_BY_PRIMARY_KEY));
+            temp.append(ORDER_BY_PRIMARY_KEY);
         }
-        temp.append(currentIndent.concat(replaceByNewSelectPatternEnd));
+        if (!newStyle) {
+            temp.append(".");
+        }
+        ;
+        temp.append(" " + endPattern);
         return temp.toString();
 
     }
@@ -170,7 +184,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     private String getCommentPrefix() {
         if (comments) {
             String comment = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.COMMENT_TEXT);
-            return comment.replace("${DATE}", java.time.LocalDateTime.now().toString());
+            return comment.replace("${DATE}", java.time.LocalDateTime.now().toString()).concat("\n");
         }
         return "";
     }
@@ -179,4 +193,54 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         return String.format("%" + indent_number + "s", "");
     }
 
+    public static String[] split(String in) {
+        String[] r = new String[] {};
+        String from = "(?i)(?=from )";
+        r = in.split(from + "|(?=into )" + "|(?=up\\sto )" + "|(?=where )" + "|(?=and )" + "|(?=or )" + "|(?=endselect)"
+                + "|(?=order )" + "|(?=group )" + "|(?=fields )");
+        return r;
+    }
+
+   
+    public static String format(String in, String originalIndentation) {
+        if (in.startsWith("select ")) {
+            String selection = in.replaceFirst("select\\s+(.*)", "$1").trim();
+            if (selection.contains(" ") && !selection.contains(",")) {
+                in = "select ".concat(selection.replaceAll("\\s+", ", "));
+            }
+            return originalIndentation + in.trim() + "\n";
+        } else if (in.startsWith("fields ")) {
+            String selection = in.replaceFirst("fields\\s+(.*)", "$1").trim();
+            if (selection.contains(" ") && !selection.contains(",")) {
+                in = "fields ".concat(selection.replaceAll("\\s+", ", "));
+            }
+            return originalIndentation + "  " + in .trim()+ "\n";
+        } else if (in.startsWith("where ")) {
+            return originalIndentation + "  " + adaptNewStyle(in).trim() + "\n";
+        } else if (in.startsWith("and ")) {
+            return originalIndentation + "    " + adaptNewStyle(in).trim() + "\n";
+        } else if (in.startsWith("or ")) {
+            return originalIndentation + "     " + adaptNewStyle(in).trim() + "\n";
+        } else if (in.startsWith("into ")) {
+
+            return originalIndentation + "  " + adaptInto(in).trim() + "\n";
+        } else if (in.startsWith("endselect")) {
+            return originalIndentation + in.trim();
+        } else {
+            return originalIndentation + "  " + in.trim() + "\n";
+        }
+
+    }
+
+    private static String adaptInto(String in) {
+        // replace into (tkonn, tposn) with into (@tkonn, @tposn)
+        return in.replaceAll("( \\(|[ ,])([a-zA-Z_])", "$1@$2");
+    }
+
+    private static String adaptNewStyle(String in) {
+        // replace where tkonn = tkonn with where tkonn = @tkonn
+        // (no duplicate spaces)                where   tkonn eq    tkonn
+        String replaceFirst = in.replaceFirst("([a-z]*) (.*) (..?) ([a-zA-Z_])", "$1 $2 $3 @$4");
+        return replaceFirst;
+    }
 }

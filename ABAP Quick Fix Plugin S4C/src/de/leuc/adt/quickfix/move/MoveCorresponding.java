@@ -22,7 +22,7 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
             //      1                         2              3
             "(?s)(\\s*)move-corresponding\\s+(.*)\\s+to\\s+(.*)";
 
-    private static final String replaceByPattern = "$1$3 = corresponding #( $2 )";
+    private static final String replaceByPattern = "$3 = corresponding #( $2 )";
     /**
      * already contains line break
      */
@@ -42,17 +42,29 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
 
     @Override
     public String getChangedCode() {
+        String temp2 = CodeReader.CurrentStatement.getStatement().replaceAll(" ", "");
+        String leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(move-corresponding)(.*)", "$1");
+
+        String temp3 = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
+        // characters
+        String originalIndentation = temp3.replaceFirst("(?i)(?s)(\\s*)(move-corresponding)(.*)", "$1");
+        
         String temp = CodeReader.CurrentStatement.replaceAllPattern("(.*)"+System.lineSeparator()+"(.*)", "$1$2");
-        temp = temp.trim().replaceAll(" +", " "); // condense spaces
-        temp = temp.trim().replaceAll("\\R+", ""); // remove line breaks
+        temp = temp.trim().replaceAll(" +", " ").trim().replaceAll("\\R+", ""); // condense spaces, remove line breaks
         
         String comentedOut = getCommentedOutStatement(CodeReader.CurrentStatement.getStatement());
-        return comentedOut.concat(temp.replaceFirst(getMatchPattern(), getReplacePattern()));
+        return leadingBreaks.concat( 
+                getCommentPrefix().concat(
+                        comentedOut).concat(
+                                originalIndentation.concat( 
+                                    temp.replaceFirst(getMatchPattern(), getReplacePattern()) )) );
     }
 
     private String getCommentedOutStatement(String in) {
         if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
-            return in.replaceAll("(\\R)", "$1*");
+            // String ls = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*move-corresponding.*)","$1");
+            in = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*move-corresponding.*)", "*$2");
+            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
         }
         return "";
     }
@@ -68,9 +80,14 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
         return null;
     }
 
+    private static Image icon;
     @Override
     public Image getAssistIcon() {
-        return QuickFixIcon.get();
+        if (icon == null) {
+            icon = Activator.imageDescriptorFromPlugin(Activator.PLUGIN_ID, "icons/qfs4c16.png")
+                    .createImage();
+        }
+        return icon;
     }
 
     @Override
@@ -80,7 +97,7 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
             // get current indentation for statement, prefix with line break
             String temp = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$1");
             //  currentIndent = System.lineSeparator().concat(temp.replaceAll("\\s*\\R", ""));// remove spaces
-            currentIndent = temp.replaceAll("\\s*\\R", "");// no line break before
+           
 
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
@@ -109,18 +126,13 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
 
     @Override
     public String getReplacePattern() {
-        String indent = getPrefix();
-        StringBuffer temp = new StringBuffer();
-        temp.append(currentIndent.concat(getCommentPrefix()));
-        temp.append(currentIndent.concat(replaceByPattern));// corresponding #( )       
-        return temp.toString();
-
+        return replaceByPattern;
     }
 
     private String getCommentPrefix() {
         if (comments) {
             String comment = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.COMMENT_TEXT);
-            return comment.replace("${DATE}", java.time.LocalDateTime.now().toString());
+            return comment.replace("${DATE}", java.time.LocalDateTime.now().toString()).concat("\n");
         }
         return "";
     }
