@@ -64,7 +64,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
         String temp = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
                                                                                            // characters
-        String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1");
+        String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
 
         // line breaks are added automatically with the indentation prefix
         String comentedOut = getCommentedOutStatement(temp);
