@@ -5,6 +5,6 @@ Direct installation from http://leuc.de/abapquickfixs4c
 ABAP Quick Fix Additions for S4 Conversion Projects:
 
 ## Convert _select single_ into _select up to 1 rows with endselect_:
-  
-<img src="https://user-images.githubusercontent.com/90344490/173083656-2a2920ce-ff96-4456-a129-b8e2b8743502.gif" width="50%">
+
+<img src="https://user-images.githubusercontent.com/90344490/173096279-8fd57c8b-8732-49a0-8c39-f059f7363277.gif" width="50%">
   
