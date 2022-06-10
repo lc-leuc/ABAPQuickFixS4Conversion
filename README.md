@@ -16,5 +16,5 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 * Provide / change default _order by_ sequences for tables.
 * Optional: automatically add a change comment preceeding the change.
-* Optional: automatically uncomment changed code instead of replaceing it.
+* Optional: automatically uncomment changed code instead of replacing it.
 * Optional: use new syntax using _field_.
