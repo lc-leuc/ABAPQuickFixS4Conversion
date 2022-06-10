@@ -8,3 +8,9 @@ ABAP Quick Fix Additions for S4 Conversion Projects:
 
 <img src="https://user-images.githubusercontent.com/90344490/173096279-8fd57c8b-8732-49a0-8c39-f059f7363277.gif" width="50%">
   
+## Features
+
+* Provide / change default _order by_ sequences for tables.
+* Optional: automatically add a change comment preceeding the change.
+* Optional: automatically uncomment changed code instead of replaceing it.
+* Optional: use new syntax using _field_.
