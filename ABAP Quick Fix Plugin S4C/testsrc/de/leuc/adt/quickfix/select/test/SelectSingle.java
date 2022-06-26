@@ -59,16 +59,9 @@ class SelectSingle {
      * "single" * 4 - field list * 5 - table * 6 - into-data statement * 7 - where
      * statement
      */
-//    private static final String selectPattern =
-//            // select single * from wbhk into @data(result) where tkonn = ''.
-//            // 1 2 3 4 5 6 7
-//            "(?i)([\n\r]*)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)\\.";
-//    // "(?i)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)(order
-//    // by .*)?\\."; // optional order by
 
     private String breaks = "";
 
-    private static final String modernReplaceBy = "select from $5 fields $4 where $7 into $6 up to 1 rows. endselect";
     private static final String replaceBy = "select $4 from $5 into $6 up to 1 rows where $7 endselect";
 
     @Test
@@ -123,21 +116,21 @@ class SelectSingle {
 //                        + "select * from wbit into @data(result) up to 1 rows where tkonn eq @tkonn and tposn = @tposn. endselect\n"
 //                        + "|");
 
-                String[] s = de.leuc.adt.quickfix.select.SelectSingle.split(actString);
+                String[] s = de.leuc.adt.quickfix.select.SelectFormat.split(actString);
                 StringBuffer sb = new StringBuffer();
 
                 for (String string : s) {
                     // System.out.println(string);
-                    sb.append(de.leuc.adt.quickfix.select.SelectSingle.format(string, ""));
+                    sb.append(de.leuc.adt.quickfix.select.SelectFormat.format(string, "", "select"));
                 }
                 System.out.println(sb.toString());
 
-                String[] r = de.leuc.adt.quickfix.select.SelectSingle.split(results.get(path));
+                String[] r = de.leuc.adt.quickfix.select.SelectFormat.split(results.get(path));
                 StringBuffer rb = new StringBuffer();
 
                 for (String string : r) {
                     // System.out.println(string);
-                    rb.append(de.leuc.adt.quickfix.select.SelectSingle.format(string, ""));
+                    rb.append(de.leuc.adt.quickfix.select.SelectFormat.format(string, "", "select"));
                 }
                 System.out.println(rb.toString());
                 

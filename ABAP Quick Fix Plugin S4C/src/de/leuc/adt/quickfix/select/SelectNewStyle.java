@@ -15,9 +15,7 @@ import de.leuc.adt.quickfix.Activator;
 import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
 import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
-public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
-
-    private static final String ORDER_BY_PRIMARY_KEY = "order by primary key.";
+public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex {
 
     /**
      * Capturing Groups * 1 - leading line breaks * 2 - leading spaces * 3 - word
@@ -28,13 +26,8 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
             // dot is not part of the statement
             // select single * from wbhk into @data(result) where tkonn = ''
             // 1 2 3 4 5 6 7
-            "(?i)([\n\r]*)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
-//             "^(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
+            "(?i)([\n\r]*)(\\s*)select\\s+(.*)\\s+from\\s+(.*)\\s+into([ corresponding fields of]?)\\s+(.*)\\s+where\\s+(.*)";
 
-    private static final String targetSelectPatternStart = "select $4 from $5 into $6 up to 1 rows where $7 ";
-    private static final String targetSelectPatternEnd = "endselect";
-    private static final String modernTargetSelectPatternStart = "select from $5 fields $4 where $7";
-    private static final String modernTargetSelectPatternEnd = " into $6 up to 1 rows. endselect";
 
     private String currentTable;
     /**
@@ -44,7 +37,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     private boolean comments = false;
     private int indent_number = 2;
 
-    public SelectSingle() {
+    public SelectNewStyle() {
         super();
 
         // todo: include formating rules
@@ -71,22 +64,21 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
         temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
         currentTable = temp.replaceFirst(getMatchPattern(), "$5");
-
-        String m = getMatchPattern();
-        String r = getReplacePattern();
-        String newString = temp.replaceFirst(m, r);
-        String[] s = SelectFormat.split(newString.replaceAll("\\s\\s*", " ")); // remove multiple spaces
+       
+        String[] s = SelectFormat.split(temp.trim().replaceAll("\\s\\s*", " ")); // remove multiple spaces
         String statement = "";
         for (String line : s) {
             statement += SelectFormat.format(line, originalIndentation, "select");
         }
-
+        statement = statement.replaceAll("[\\r\\n]$", ""); // remove last line break
+        
         String concat = leadingBreaks.concat(getCommentPrefix().concat(comentedOut.concat(statement)));
         return concat;
     }
 
     private String getCommentedOutStatement(String in) {
         if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
+            // String ls = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*select.*)","$1");
             in = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*select.*)", "*$2");
             return in.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
         }
@@ -95,16 +87,13 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public String getAssistShortText() {
-        return "Replace select single with select up to one rows";
+        return "Select / endselect: replace old style SQL with new style.";
     }
 
     @Override
     public String getAssistLongText() {
-        return "Replace select single with select 'up to 1 rows'. "
-                + "In cases that select single might not be unique an ordering of "
-                + "results can be enforced by providing the 'order by' statement. "
-                + "For tables that feature a new ruuid-style key field after S4/Hana transition, "
-                + "a configurable 'order by' sequence is provided in preferences.";
+        
+        return "Replace old style SQL with new style for select/endselect.\n New style includes @ for variables and commas for lists.";
     }
 
     private static Image icon;
@@ -120,6 +109,10 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     @Override
     public boolean canAssist() {
         String currentStatement = CodeReader.CurrentStatement.getStatement();
+        if (currentStatement.contains(" single ")) {
+            return false;
+            
+        }
         if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {// && !(new MoveExact().canAssist()))
                                                                                   // {
             // table name to decide on order by clause
@@ -152,34 +145,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public String getReplacePattern() {
-        StringBuffer temp = new StringBuffer();
-        String endPattern = "";
-        boolean newStyle = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.NEW_STYLE);
-
-        if (newStyle) {
-            temp.append(modernTargetSelectPatternStart);
-            endPattern = modernTargetSelectPatternEnd;
-        } else {
-            temp.append(targetSelectPatternStart);
-            endPattern = targetSelectPatternEnd;
-        }
-        // order by depends on table
-        // several tables feature uuids as keys - use old key fields to order lines
-        // old keys are defined individually in the S4C preferences page
-        // order by primary key otherwise
-        String orderBy = OrderByPrefParser.getOrderBy(currentTable);
-
-        if (orderBy != null) {
-            temp.append("order by " + orderBy);
-        } else {
-            temp.append(ORDER_BY_PRIMARY_KEY);
-        }
-        if (!newStyle) {
-            temp.append(".");
-        }
-        ;
-        temp.append(" " + endPattern);
-        return temp.toString();
+        return "";
 
     }
 
@@ -195,4 +161,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         return String.format("%" + indent_number + "s", "");
     }
 
+ 
+
 }
+

@@ -35,5 +35,8 @@
         <extension
               point="org.eclipse.ui.editors">
         </extension>
+        <extension
+              point="com.sap.adt.tools.core.ui.quickAssistProcessors">
+        </extension>
 
 </plugin>

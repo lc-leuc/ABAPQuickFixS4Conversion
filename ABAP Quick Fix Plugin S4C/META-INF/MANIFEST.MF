@@ -29,6 +29,10 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: de.leuc.adt.quickfix
 Bundle-ActivationPolicy: lazy
-Import-Package: com.sap.adt.project.ui.util,
+Import-Package: com.sap.adt.atc.model.autoquickfix,
+ com.sap.adt.project.ui.util,
+ com.sap.adt.refactoring.model.quickfixes,
+ com.sap.adt.refactoring.quickfix,
+ com.sap.adt.tools.core.ui.contentassist,
  org.eclipse.core.resources,
  org.eclipse.ui.forms.widgets

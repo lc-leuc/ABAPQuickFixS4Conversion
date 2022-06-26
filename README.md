@@ -10,6 +10,10 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 <img src="https://user-images.githubusercontent.com/90344490/173096279-8fd57c8b-8732-49a0-8c39-f059f7363277.gif" width="50%">
 
+#### Convert old SQL style _select single_ into new style using '@' and commas in lists
+
+#### Convert old SQL style _select / endselect_ or _select into table_ into new style using '@' and commas in lists
+
 #### move-corresponding to corresponding #()
   
 ### Preferences
