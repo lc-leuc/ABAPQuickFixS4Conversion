@@ -17,7 +17,7 @@ import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
 public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
-    private static final String ORDER_BY_PRIMARY_KEY = "order by primary key.";
+    private static final String ORDER_BY_PRIMARY_KEY = "order by primary key";
 
     /**
      * Capturing Groups * 1 - leading line breaks * 2 - leading spaces * 3 - word
@@ -62,8 +62,8 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
         leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
 
-        String temp = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
-                                                                                           // characters
+        String temp = (SelectFormat.removeAllLineComments(CodeReader.CurrentStatement))
+                                   .replaceAll("\r\n\\s*[\r\n]", ""); // remove first line feed characters
         String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
 
         // line breaks are added automatically with the indentation prefix

@@ -55,8 +55,8 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 
         leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
 
-        String temp = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
-                                                                                           // characters
+        String temp = (SelectFormat.removeAllLineComments(CodeReader.CurrentStatement))
+                                   .replaceAll("\r\n\\s*[\r\n]", ""); // remove first line feed characters
         String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
 
         // line breaks are added automatically with the indentation prefix
@@ -109,9 +109,9 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
     @Override
     public boolean canAssist() {
         String currentStatement = CodeReader.CurrentStatement.getStatement();
-        if (currentStatement.contains(" single ")) {
+        // do not propose if select single or already in new SQL style
+        if (currentStatement.contains(" single ") || currentStatement.contains(("@"))) {
             return false;
-            
         }
         if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {// && !(new MoveExact().canAssist()))
                                                                                   // {

@@ -1,5 +1,7 @@
 package de.leuc.adt.quickfix.select;
 
+import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
+
 public abstract class SelectFormat {
 
     public static String[] split(String in) {
@@ -48,19 +50,24 @@ public abstract class SelectFormat {
     
     private static String adaptInto(String in) {
         // replace into (tkonn, tposn) with into (@tkonn, @tposn)
-        return in.replaceAll("( \\(|[ ,])([a-zA-Z_])", "$1@$2");
+        return in.replaceAll("( \\(|[ ,])([<a-zA-Z0-9_])", "$1@$2");
     }
 
     private static String adaptIntoCorrespondingFieldsOf(String in) {
         // replace into (tkonn, tposn) with into (@tkonn, @tposn)
-        return in.replaceAll("( \\(|[ ,])([a-zA-Z_])", "$1@$2");
+        return in.replaceAll("( \\(|[ ,])([<a-zA-Z0-9_])", "$1@$2");
     }
 
     private static String adaptNewStyle(String in) {
         // replace where tkonn = tkonn with where tkonn = @tkonn
         // (no duplicate spaces)                where   tkonn eq    tkonn
-        String replaceFirst = in.replaceFirst("([a-z]*) (.*) (..?) ([a-zA-Z_])", "$1 $2 $3 @$4");
+        String replaceFirst = in.replaceFirst("([a-zA-Z0-9_]*) (.*) (..?) ([<a-zA-Z0-9_])", "$1 $2 $3 @$4");
         return replaceFirst;
+    }
+
+
+    public static String removeAllLineComments(AbapStatement currentStatement) {
+        return currentStatement.replaceAllPattern("([\r\n])\\*.*([\\r\\n])", "$1$2");
     }
 
 }

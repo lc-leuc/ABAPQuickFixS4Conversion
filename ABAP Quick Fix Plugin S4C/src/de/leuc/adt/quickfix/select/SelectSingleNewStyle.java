@@ -53,12 +53,12 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
     @Override
     public String getChangedCode() {
-        String temp2 = CodeReader.CurrentStatement.getStatement().replaceAll(" ", "");
-
+        String temp2 = CodeReader.CurrentStatement.getStatement();//.getStatement().replaceAll(" ", "");
+        
         leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
 
-        String temp = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
-                                                                                           // characters
+        String temp = (SelectFormat.removeAllLineComments(CodeReader.CurrentStatement))
+                                   .replaceAll("\r\n\\s*[\r\n]", ""); // remove first line feed characters
         String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
 
         // line breaks are added automatically with the indentation prefix
@@ -110,6 +110,10 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
     @Override
     public boolean canAssist() {
         String currentStatement = CodeReader.CurrentStatement.getStatement();
+        // do not propose if already in new SQL style
+        if (currentStatement.contains(("@"))) {
+            return false;
+        }
         if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {// && !(new MoveExact().canAssist()))
                                                                                   // {
             // table name to decide on order by clause
