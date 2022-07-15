@@ -8,7 +8,7 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 #### Convert _select single_ into _select up to 1 rows with endselect_:
 
-<img src="https://user-images.githubusercontent.com/90344490/173096279-8fd57c8b-8732-49a0-8c39-f059f7363277.gif" width="50%">
+<img src="https://user-images.githubusercontent.com/90344490/173096279-8fd57c8b-8732-49a0-8c39-f059f7363277.gif" width="80%">
 
 #### Convert old SQL style _select single_ into new style using '@' and commas in lists
 
@@ -22,3 +22,9 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 * Optional: automatically add a change comment preceeding the change.
 * Optional: automatically uncomment changed code instead of replacing it.
 * Optional: use new syntax using _field_.
+
+### Changes
+
+#### 1.2.2
+
+* Respects upper case key words.
