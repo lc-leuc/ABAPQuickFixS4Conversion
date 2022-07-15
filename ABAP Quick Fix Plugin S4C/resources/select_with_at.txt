@@ -2,4 +2,4 @@
 
     select single * from wbit into @data(result)    
       where tkonn eq @tkonn    
-        and tposn = @tposn.
+        and tposn = @tposn

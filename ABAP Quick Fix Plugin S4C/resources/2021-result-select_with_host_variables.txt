@@ -1,0 +1,9 @@
+select 
+  from tnapr
+  fields *
+  where kschl = @configuration-kschl
+    and nacha = @configuration-nacha
+    and kappl = @configuration-kappl
+  into corresponding fields of @output_params
+  up to 1 rows.
+endselect

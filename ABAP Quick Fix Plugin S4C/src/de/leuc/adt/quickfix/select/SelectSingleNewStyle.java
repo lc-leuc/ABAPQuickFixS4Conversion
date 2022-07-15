@@ -56,8 +56,10 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         String temp2 = CodeReader.CurrentStatement.getStatement();//.getStatement().replaceAll(" ", "");
         
         leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
-
-        String temp = (SelectFormat.removeAllLineComments(CodeReader.CurrentStatement))
+        
+		SelectFormat formatter = new SelectFormat(temp2.contains("select")); // guess case
+  
+        String temp = (formatter.removeAllLineComments(CodeReader.CurrentStatement))
                                    .replaceAll("\r\n\\s*[\r\n]", ""); // remove first line feed characters
         String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
 
@@ -67,10 +69,10 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
         currentTable = temp.replaceFirst(getMatchPattern(), "$5");
        
-        String[] s = SelectFormat.split(temp.trim().replaceAll("\\s\\s*", " ")); // remove multiple spaces
+        String[] s = formatter.split(temp.trim().replaceAll("\\s\\s*", " ")); // remove multiple spaces
         String statement = "";
         for (String line : s) {
-            statement += SelectFormat.format(line, originalIndentation, "select single");
+            statement += formatter.format(line, originalIndentation, "select single");
         }
         statement = statement.replaceAll("[\\r\\n]$", ""); // remove last line break
         

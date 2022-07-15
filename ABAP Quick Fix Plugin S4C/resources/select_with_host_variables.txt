@@ -1,0 +1,5 @@
+select single * from tnapr
+  into corresponding fields of @output_params
+  where kschl = @configuration-kschl
+    and nacha = @configuration-nacha
+    and kappl = @configuration-kappl

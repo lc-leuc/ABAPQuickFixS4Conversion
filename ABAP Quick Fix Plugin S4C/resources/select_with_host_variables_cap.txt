@@ -1,0 +1,5 @@
+SELECT SINGLE * FROM tnapr
+  INTO CORRESPONDING FIELDS OF @output_params
+  WHERE kschl = @configuration-kschl
+    AND nacha = @configuration-nacha
+    AND kappl = @configuration-kappl

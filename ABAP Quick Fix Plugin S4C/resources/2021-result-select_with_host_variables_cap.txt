@@ -1,0 +1,9 @@
+SELECT 
+  FROM tnapr
+  FIELDS *
+  WHERE kschl = @configuration-kschl
+    AND nacha = @configuration-nacha
+    AND kappl = @configuration-kappl
+  INTO CORRESPONDING FIELDS OF @output_params
+  UP TO 1 ROWS.
+ENDSELECT

@@ -1,6 +1,6 @@
     select single *
       FROM wbit ""test
       iNto wbit
-      where tkonn = tkonn and tposn = tposn.
+      where tkonn = tkonn and tposn = tposn
 
 
