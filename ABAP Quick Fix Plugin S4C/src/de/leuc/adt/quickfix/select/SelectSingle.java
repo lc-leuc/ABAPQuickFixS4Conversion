@@ -44,7 +44,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 	private static final String selectPattern =
 			// select single * from wbhk into @data(result) where tkonn = ''
 			// 1 2 3 4 5 6 7 8 9 10 11
-			"(?i)([\n\r]*)(\\s*)(select)\\s+(single)\\s+(.*)\\s+(from)\\s+(.*)\\s+(into)\\s+(.*)\\s+(where)\\s+(.*)";
+			"(?i)([\n\r]*)(\\s*)(select)\\s+(single)\\s+(.*)\\s+(from)\\s+(.*)\\s+(into)\\s+(.*)(?:\\s+(where)\\s+(.*))?";
 
 	// 01 breaks
 	// 02 spaces

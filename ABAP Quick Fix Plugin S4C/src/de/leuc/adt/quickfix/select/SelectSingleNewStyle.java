@@ -28,7 +28,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
             // dot is not part of the statement
             // select single * from wbhk into @data(result) where tkonn = ''
             // 1 2 3 4 5 6 7
-            "(?i)([\n\r]*)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
+            "(?i)([\n\r]*)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)(?:\\s+where\\s+(.*))?";
 
 
     private String currentTable;
