@@ -107,7 +107,7 @@ public class SelectFormat {
 	}
 
 	public String removeAllLineComments(AbapStatement currentStatement) {
-		return currentStatement.replaceAllPattern("([\r\n])\\*.*([\\r\\n])", "$1$2");
+		return currentStatement.replaceAllPattern("([\\r\\n])\\*.*([\\r\\n])", "$1$2");
 	}
 
 }
