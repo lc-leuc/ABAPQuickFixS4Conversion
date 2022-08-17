@@ -28,7 +28,8 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
             // dot is not part of the statement
             // select single * from wbhk into @data(result) where tkonn = ''
             // 1 2 3 4 5 6 7
-            "(?i)([\n\r]*)(\\s*)select\\s+(single)\\s+(.*)\\s+from\\s+(.*)\\s+into\\s+(.*)\\s+where\\s+(.*)";
+            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)select\\s+(?<single>single)\\s+(?<fields>.*)\\s+from\\s+(?<table>.*)"
+		+	"\\s+into\\s+(?<variable>.*)(?:\\s+where\\s+(?<condition>.*))?";
 
 
     private String currentTable;
@@ -67,7 +68,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         String comentedOut = getCommentedOutStatement(temp);
 
         temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
-        currentTable = temp.replaceFirst(getMatchPattern(), "$5");
+        currentTable = temp.replaceFirst(getMatchPattern(), "${table}");
        
         String[] s = formatter.split(temp.trim().replaceAll("\\s\\s*", " ")); // remove multiple spaces
         String statement = "";

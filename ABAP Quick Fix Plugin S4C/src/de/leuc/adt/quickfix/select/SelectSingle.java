@@ -44,7 +44,8 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 	private static final String selectPattern =
 			// select single * from wbhk into @data(result) where tkonn = ''
 			// 1 2 3 4 5 6 7 8 9 10 11
-			"(?i)([\n\r]*)(\\s*)(select)\\s+(single)\\s+(.*)\\s+(from)\\s+(.*)\\s+(into)\\s+(.*)\\s+(where)\\s+(.*)";
+			"(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<single>single)\\s+(?<fields>.*)"
+		+	"\\s+(?<from>from)\\s+(?<table>.*)\\s+(?<into>into)\\s+(?<variable>.*)(?:\\s+(?<where>where)\\s+(?<condition>.*))?";
 
 	// 01 breaks
 	// 02 spaces
@@ -54,14 +55,14 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 	// 06 from
 	// 07 table
 	// 08 into
-	// 09 into variable
+	// 09 variable
 	// 10 where
-	// 11 where statement
+	// 11 condition
 
-	private static final String targetSelectPatternStart = "$3 $5 $6 $7 $8 $9 up to 1 rows $10 $11";
+	private static final String targetSelectPatternStart = "${select} ${fields} ${from} ${table} ${into} ${variable} up to 1 rows ${where} ${condition}";
 	private static final String targetSelectPatternEnd = "endselect";
-	private static final String modernTargetSelectPatternStart = "$3 $6 $7 fields $5 $10 $11";
-	private static final String modernTargetSelectPatternEnd = " $8 $9 up to 1 rows. endselect";
+	private static final String modernTargetSelectPatternStart = "${select} ${from} ${table} fields ${fields} ${where} ${condition}";
+	private static final String modernTargetSelectPatternEnd = " ${into} ${variable} up to 1 rows. endselect";
 
 	private String currentTable;
 	/**
@@ -102,7 +103,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 		String comentedOut = getCommentedOutStatement(temp);
 
 		temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
-		currentTable = temp.replaceFirst(getMatchPattern(), "$7"); //workaround - cannot change signature of getReplacePattern
+		currentTable = temp.replaceFirst(getMatchPattern(), "${table}"); //workaround - cannot change signature of getReplacePattern
 
 		String m = getMatchPattern();
 		String r = getReplacePattern();
