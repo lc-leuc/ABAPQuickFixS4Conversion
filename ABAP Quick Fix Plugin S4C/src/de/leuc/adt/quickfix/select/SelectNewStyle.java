@@ -18,22 +18,31 @@ import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex {
 
 	/**
-	 * Capturing Groups * 1 - leading line breaks * 2 - leading spaces * 3 - word
-	 * "single" * 4 - field list * 5 - table * 6 - into-data statement * 7 - where
-	 * statement
+	 * Capturing Groups
+	 * <ul> 
+	 * <li> leading line breaks 
+	 * <li> leading spaces 
+	 * <li> word "single"
+	 * <li> field list
+	 * <li> table
+	 * <li> into-data statement
+	 * <li> where statement
+	 * </ul>
 	 */
 	private static final String selectPattern =
 			// dot is not part of the statement
 			// select single * from wbhk into @data(result) where tkonn = ''
-			// 1 2 3 4 5 6 7
-			"(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)select\\s+(?<fields>.*)\\s+from\\s+(?<table>.*)\\s+"
-		+	"into(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)(?:\\s+where\\s+(?<condition>.*))?";
+			"(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+(?<from>from)\\s+(?<table>.*)\\s+"
+		+	"(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)\\s+(?<where>where)\\s+(?<condition>.*)?";
+
+    private static final String modernTargetSelectPattern = 
+            "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
+            + " ${into} ${variable}";
 
 	private String currentTable;
 	/**
 	 * already contains line break
 	 */
-	private String leadingBreaks = "";
 	private boolean comments = false;
 	private int indent_number = 2;
 
@@ -51,34 +60,44 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 
 	@Override
 	public String getChangedCode() {
-		String temp2 = CodeReader.CurrentStatement.getStatement().replaceAll(" ", "");
 
-		leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
+        String statement = CodeReader.CurrentStatement.getStatement();
+        // determine comments preceding the statement
+        String initialComment = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$1");
+        // determine statement without preceding comments
+        statement = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$2");
 
-		SelectFormat formatter = new SelectFormat(temp2.contains("select")); // guess case
+        // statement = statement.replaceAll("\r\n\\s*[\r\n]", "");
+        // wee need to remember the indentation
+        String originalIndentation = statement.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1");
 
-		String temp = (formatter.removeAllLineComments(CodeReader.CurrentStatement)).replaceAll("\r\n\\s*[\r\n]", ""); // remove
-																														// first
-																														// line
-																														// feed
-																														// characters
-		String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
+        SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
 
-		// line breaks are added automatically with the indentation prefix
-		String comentedOut = getCommentedOutStatement(temp);
+        // if preferences are set: produce a commented version of the original text
+        String comentedOut = getCommentedOutStatement(statement);
 
-		temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
-		currentTable = temp.replaceFirst(getMatchPattern(), "${table}");
+        // remove all line feed characters and leading spaces
+        statement = statement.replaceAll("[\r\n]", "").trim();
 
-		String[] s = formatter.split(temp.trim().replaceAll("\\s\\s*", " ")); // remove multiple spaces
-		String statement = "";
-		for (String line : s) {
-			statement += formatter.format(line, originalIndentation, "select");
-		}
-		statement = statement.replaceAll("[\\r\\n]$", ""); // remove last line break
+        // remember the current table, in order to determine order-by statement
+        currentTable = statement.replaceFirst(getMatchPattern(), "${table}");
+        
 
-		String concat = leadingBreaks.concat(getCommentPrefix().concat(comentedOut.concat(statement)));
-		return concat;
+        IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+        if (store.getBoolean(PreferenceConstants.NEW_STYLE)) {
+            // do the actual replacement
+            statement = statement.replaceFirst(getMatchPattern(), getReplacePattern());
+        }
+//        // do the actual replacement
+//        String replacement = statement.replaceFirst(getMatchPattern(), getReplacePattern());
+//
+//        // format 
+//        String newStatement = formatter.format(originalIndentation, replacement);
+        String newStatement = formatter.format(originalIndentation, statement, "select");
+        // concatenate leading breaks with automatic comment (if set in prefs)
+        // as well as original statement (as comment if set in prefs) and new statement
+        return initialComment.concat(getCommentPrefix()).concat(comentedOut).concat(newStatement);
+	    
 	}
 
 	private String getCommentedOutStatement(String in) {
@@ -92,7 +111,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 
 	@Override
 	public String getAssistShortText() {
-		return "Select / endselect: replace old style SQL with new style.";
+		return "Select w/ endselect or w/ into table: replace old style SQL with new style.";
 	}
 
 	@Override
@@ -118,8 +137,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 		if (currentStatement.toLowerCase().contains(" single ") || currentStatement.contains(("@"))) {
 			return false;
 		}
-		if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {// && !(new MoveExact().canAssist()))
-																					// {
+		if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {
 			// table name to decide on order by clause
 
 			IPreferenceStore store = Activator.getDefault().getPreferenceStore();
@@ -150,7 +168,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 
 	@Override
 	public String getReplacePattern() {
-		return "";
+		return modernTargetSelectPattern;
 
 	}
 

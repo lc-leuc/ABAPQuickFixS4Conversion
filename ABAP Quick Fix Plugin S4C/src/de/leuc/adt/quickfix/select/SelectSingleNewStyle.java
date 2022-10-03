@@ -20,17 +20,30 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
     private static final String ORDER_BY_PRIMARY_KEY = "order by primary key.";
 
     /**
-     * Capturing Groups * 1 - leading line breaks * 2 - leading spaces * 3 - word
-     * "single" * 4 - field list * 5 - table * 6 - into-data statement * 7 - where
-     * statement
+     * Capturing Groups
+     * <ul>
+     * <li>leading line breaks
+     * <li>leading spaces
+     * <li>select
+     * <li>single (word)
+     * <li>field list
+     * <li>from (word)
+     * <li>table
+     * <li>into (word)
+     * <li>variable
+     * <li>where (word)
+     * <li>condition
+     * </ul>
      */
-    private static final String selectPattern =
-            // dot is not part of the statement
-            // select single * from wbhk into @data(result) where tkonn = ''
-            // 1 2 3 4 5 6 7
-            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)select\\s+(?<single>single)\\s+(?<fields>.*)\\s+from\\s+(?<table>.*)"
-		+	"\\s+into\\s+(?<variable>.*)(?:\\s+where\\s+(?<condition>.*))?";
 
+    // dot is not part of the statement
+    private static final String selectPattern =
+            // select single * from wbhk into @data(result) where tkonn = ''
+            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<single>single)\\s+(?<fields>.*)\\s+(?<from>from)\\s+(?<table>.*)\\s+"
+            + "(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)\\s+(?<where>where)\\s+(?<condition>.*)?";
+
+    private static final String modernTargetSelectPattern = "${select} ${single} ${from} ${table} fields ${fields} ${where} ${condition}"
+            + " ${into} ${variable}";
 
     private String currentTable;
     /**
@@ -54,31 +67,67 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
     @Override
     public String getChangedCode() {
-        String temp2 = CodeReader.CurrentStatement.getStatement();//.getStatement().replaceAll(" ", "");
-        
-        leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
-        
-		SelectFormat formatter = new SelectFormat(temp2.contains("select")); // guess case
-  
-        String temp = (formatter.removeAllLineComments(CodeReader.CurrentStatement))
-                                   .replaceAll("\r\n\\s*[\r\n]", ""); // remove first line feed characters
-        String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
+//        String temp2 = CodeReader.CurrentStatement.getStatement();//.getStatement().replaceAll(" ", "");
+//        
+//        leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(select)(.*)", "$1");
+//        
+//		SelectFormat formatter = new SelectFormat(temp2.contains("select")); // guess case
+//  
+//        String temp = (formatter.removeAllLineComments(CodeReader.CurrentStatement))
+//                                   .replaceAll("\r\n\\s*[\r\n]", ""); // remove first line feed characters
+//        String originalIndentation = temp.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1").replaceAll("[\r\n]", "");
+//
+//        // line breaks are added automatically with the indentation prefix
+//        String comentedOut = getCommentedOutStatement(temp);
+//
+//        temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
+//        currentTable = temp.replaceFirst(getMatchPattern(), "${table}");
+//       
+//        String[] s = formatter.split(temp.trim().replaceAll("\\s\\s*", " ")); // remove multiple spaces
+//        String statement = "";
+//        for (String line : s) {
+//            statement += formatter.format(line, originalIndentation, "select single");
+//        }
+//        statement = statement.replaceAll("[\\r\\n]$", ""); // remove last line break
+//        
+//        String concat = leadingBreaks.concat(getCommentPrefix().concat(comentedOut.concat(statement)));
+//        return concat;
 
-        // line breaks are added automatically with the indentation prefix
-        String comentedOut = getCommentedOutStatement(temp);
+        String statement = CodeReader.CurrentStatement.getStatement();
+        // determine comments preceding the statement
+        String initialComment = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$1");
+        // determine statement without preceding comments
+        statement = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$2");
 
-        temp = temp.replaceAll("[\r\n]", ""); // remove all line feed characters
-        currentTable = temp.replaceFirst(getMatchPattern(), "${table}");
-       
-        String[] s = formatter.split(temp.trim().replaceAll("\\s\\s*", " ")); // remove multiple spaces
-        String statement = "";
-        for (String line : s) {
-            statement += formatter.format(line, originalIndentation, "select single");
+        // statement = statement.replaceAll("\r\n\\s*[\r\n]", "");
+        // wee need to remember the indentation
+        String originalIndentation = statement.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1");
+
+        SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
+
+        // if preferences are set: produce a commented version of the original text
+        String comentedOut = getCommentedOutStatement(statement);
+
+        // remove all line feed characters and leading spaces
+        statement = statement.replaceAll("[\r\n]", "").trim();
+
+        // remember the current table, in order to determine order-by statement
+        currentTable = statement.replaceFirst(getMatchPattern(), "${table}");
+
+        IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+        if (store.getBoolean(PreferenceConstants.NEW_STYLE)) {
+            // do the actual replacement
+            statement = statement.replaceFirst(getMatchPattern(), getReplacePattern());
         }
-        statement = statement.replaceAll("[\\r\\n]$", ""); // remove last line break
         
-        String concat = leadingBreaks.concat(getCommentPrefix().concat(comentedOut.concat(statement)));
-        return concat;
+//
+////         format 
+//        String newStatement = formatter.format(originalIndentation, replacement, "select");
+        String newStatement = formatter.format(originalIndentation, statement, "select single");
+
+        // concatenate leading breaks with automatic comment (if set in prefs)
+        // as well as original statement (as comment if set in prefs) and new statement
+        return initialComment.concat(getCommentPrefix()).concat(comentedOut).concat(newStatement);
     }
 
     private String getCommentedOutStatement(String in) {
@@ -96,7 +145,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
     @Override
     public String getAssistLongText() {
-        
+
         return "Replace old style SQL with new style for select single.\n New style includes @ for variables and commas for lists.";
     }
 
@@ -149,7 +198,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
     @Override
     public String getReplacePattern() {
-        return "";
+        return modernTargetSelectPattern;
 
     }
 

@@ -3,7 +3,7 @@
  */
 package de.leuc.adt.quickfix.select.test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,7 +27,6 @@ import de.leuc.adt.quickfix.select.SelectFormat;
  *
  */
 class SelectSingle {
-
 
 	/**
      * @throws java.lang.Exception
@@ -56,21 +55,19 @@ class SelectSingle {
     @AfterEach
     void tearDown() throws Exception {
     }
+  
+    // we are testing without order by clause, i.e. an additional end of statement (dot) is necessary
+    private static final String targetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternStart + ".";
+    //"${select} ${fields} ${from} ${table} ${into} ${variable} up to 1 rows ${where} ${condition}.";
+    private static final String targetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternEnd;
+    //"endselect";
+    private static final String modernTargetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternStart;
+            //"${select} ${from} ${table} fields ${fields} ${where} ${condition}";
+    private static final String modernTargetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternEnd;
+            //" ${into} ${variable} up to 1 rows. endselect";
 
-    /**
-     * Capturing Groups * 1 - leading line breaks * 2 - leading spaces * 3 - word
-     * "single" * 4 - field list * 5 - table * 6 - into-data statement * 7 - where
-     * statement
-     */
-
-    private String breaks = "";
-
-//    private static final String replaceBy = "select $4 from $5 into $6 up to 1 rows where $7. endselect";
-//    private static final String replaceByModern = "select from $5 fields $4 where $7 into $6 up to 1 rows. endselect";
-    
-    private static final String replaceBy = "$3 $5 $6 $7 $8 $9 up to 1 rows $10 $11. endselect";
-    private static final String replaceByModern = "$3 $6 $7 fields $5 $10 $11 $8 $9 up to 1 rows. endselect";
-    
+    private static final String replaceBy = targetSelectPatternStart + targetSelectPatternEnd;
+    private static final String replaceByModern = modernTargetSelectPatternStart + modernTargetSelectPatternEnd;
 
     @Test
     void replace() {
@@ -81,10 +78,13 @@ class SelectSingle {
 
         try {
             // test with strings from files in resources
-            File dir = new File("resources");
+            File dir = new File("resources" + File.separator + "select_single");
             if (dir.isDirectory()) {
                 String[] list = dir.list();
                 for (String file : list) {
+                    if (file.equals( "attic" ) ) {
+                        continue;
+                    }
                     if ( ! file.startsWith("result-") && ! file.startsWith("2021-")) {
                         String textFilePath = dir.getPath() + File.separator + file;
                         System.out.println(textFilePath);
@@ -102,8 +102,11 @@ class SelectSingle {
                 String outString = "";
                 outString = originals.get(path);// reatTextFile("resources/select_with_pre_line.txt");
                 System.out.println("====================================================================");
-                System.out.println(path);
+                System.out.println("Testing: "+ path);
+                System.out.println("====================================================================");
+                System.out.println("Current Select Statement:");
                 System.out.println(outString);
+                System.out.println("--------------------------------------------------------------------");
 
                 de.leuc.adt.quickfix.select.SelectSingle cut = new de.leuc.adt.quickfix.select.SelectSingle();
                 String selectPattern = cut.getMatchPattern();
@@ -118,41 +121,57 @@ class SelectSingle {
 //                String controlString = outString.replaceFirst(selectPattern, "|$7|");
 //                System.out.println(controlString);
 
-                breaks = outString.replaceFirst(selectPattern, "$1");
+                String breaks = outString.replaceFirst(selectPattern, "$1");
 
-                System.out.println("breaks " + breaks);
-                for (int i = 1; i < 12; i++) {
+                System.out.println();                
+                System.out.println("Parts of Select Statement:" );
+                for (int i = 1; i < 13; i++) {
                     System.out.println("" + i + "  |" + outString.replaceFirst(selectPattern, "$" + i) + "|");
                 }
+                System.out.println("--------------------------------------------------------------------");
+                System.out.println();                
 
-                System.out.println("matches " + matcher.matches());
-                System.out.println("find    " + matcher.find());
+                System.out.println("Matcher matches: " + matcher.matches());
+                System.out.println("Matcher find:    " + matcher.find());
 
-                System.out.println("actString |" + actString + "|");
-                System.out.println("expString |" + results.get(path) + "\n|");
-//                        + "select * from wbit into @data(result) up to 1 rows where tkonn eq @tkonn and tposn = @tposn. endselect\n"
-//                        + "|");
+                System.out.println("--------------------------------------------------------------------");
+                System.out.println();                
+
+                System.out.println("Current Statement:  |" + actString + "|");
+                System.out.println("Expected Statement: |" + results.get(path) + "\n|");
+
+                System.out.println("--------------------------------------------------------------------");
+                System.out.println("Original Statement (formatted):");                
+
                 
         		SelectFormat formatter = new SelectFormat(outString.contains("select")); // guess case
-
-                String[] s = formatter.split(actString);
-                StringBuffer sb = new StringBuffer();
-
-                for (String string : s) {
-                    sb.append(formatter.format(string, "", "select"));
-                }
+                String sb = formatter.format("", actString, "select");
                 System.out.println(sb.toString());
 
-                String[] r = formatter.split(results.get(path));
-                StringBuffer rb = new StringBuffer();
-
-                for (String string : r) {
-                    // System.out.println(string);
-                    rb.append(formatter.format(string, "", "select"));
-                }
+                System.out.println("--------------------------------------------------------------------");
+                System.out.println("Replacement Statement (formatted):");                                
+                String rb = formatter.format("",results.get(path), "select");
                 System.out.println(rb.toString());
                 
-                
+//                System.out.println("--------------------------------------------------------------------");
+//                System.out.println("Diff statements: ");                                
+//                System.out.println();
+//                List<Diff> diffs = new DiffMatchPatch().diff_main(sb, rb);
+//                //System.out.println(diffs);
+//                diffs.forEach( new Consumer<Diff>() { 
+//                    public void accept(Diff t) {
+//                        System.out.println( t.operation  +"\n" + t.text  + "\n " + t.operation ); 
+//                        } 
+//                    } );
+//                System.out.println("\n--------------------------------------------------------------------\n"
+//                        + "Differences:");
+//                for (Diff diff : diffs) {
+//                    if (diff.operation == Operation.INSERT) {
+//                      System.out.println(diff.text); 
+//                    }
+//                  }
+//                System.out.println("--------------------------------------------------------------------");
+
                 assertEquals(sb.toString(), rb.toString());
 
                 // assertEquals(actString, results.get(path) + "\n");
@@ -165,26 +184,21 @@ class SelectSingle {
                 String actString2 = outString.replaceFirst(selectPattern, replaceByModern);
 
             
-
+                System.out.println();
+                System.out.println("--------------------------------------------------------------------");
+                System.out.println("Testing newest style (2021): " + path);
+                System.out.println("--------------------------------------------------------------------");
                 System.out.println("actString 2021 |" + actString2 + "|");
                 System.out.println("expString 2021 |" + newStyles.get(path) + "\n|");
 
-                String[] s2 = formatter.split(actString2);
-                StringBuffer sb2 = new StringBuffer();
-
-                for (String string : s2) {
-                    sb2.append(formatter.format(string, "", "select"));
-                }
+                
+                String sb2 = formatter.format("", actString2, "select");
+                System.out.println("Current String");
                 System.out.println(sb2.toString());
 
-                String[] r2 = formatter.split(newStyles.get(path));
-                StringBuffer rb2 = new StringBuffer();
-
-                for (String string : r2) {
-                    rb2.append(formatter.format(string, "", "select"));
-                }
+                String rb2 = formatter.format("", newStyles.get(path), "select");
+                System.out.println("Expected String");
                 System.out.println(rb2.toString());
-                
                 
                 assertEquals(sb2.toString(), rb2.toString());
 
