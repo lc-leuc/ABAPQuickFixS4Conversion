@@ -123,7 +123,7 @@ public class SelectFormat {
 	    String temp = in.replaceFirst("(?i)("+keyWord+")\\s+(.*)", "$2");
 	    
 		// replace into (tkonn, tposn) with into (@tkonn, @tposn)
-		String temp2 =  prefix.concat(temp.replaceAll("(\\(|^|[ ,])([<a-zA-Z0-9_])", "$1@$2"));
+		String temp2 =  prefix.concat(temp.replaceAll("(^\\(|^|[ ,])([<a-zA-Z0-9_])", "$1@$2"));
 		return temp2;
 	}
 

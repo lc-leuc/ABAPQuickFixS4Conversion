@@ -1,1 +1,1 @@
-select FROM wbit ""test fields * where tkonn = @tkonn and tposn = @tposn iNto @wbit up to 1 rows. endselect
+select from wbit ""test fields * where tkonn = @tkonn and tposn = @tposn iNto @wbit up to 1 rows. endselect

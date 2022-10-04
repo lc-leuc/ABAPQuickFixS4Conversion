@@ -125,7 +125,7 @@ class SelectSingle {
 
                 System.out.println();                
                 System.out.println("Parts of Select Statement:" );
-                for (int i = 1; i < 13; i++) {
+                for (int i = 1; i < 12; i++) {
                     System.out.println("" + i + "  |" + outString.replaceFirst(selectPattern, "$" + i) + "|");
                 }
                 System.out.println("--------------------------------------------------------------------");
@@ -138,10 +138,10 @@ class SelectSingle {
                 System.out.println();                
 
                 System.out.println("Current Statement:  |" + actString + "|");
-                System.out.println("Expected Statement: |" + results.get(path) + "\n|");
+                System.out.println("Expected Statement: |" + results.get(path) + "|");
 
                 System.out.println("--------------------------------------------------------------------");
-                System.out.println("Original Statement (formatted):");                
+                System.out.println("Current Statement (formatted):");                
 
                 
         		SelectFormat formatter = new SelectFormat(outString.contains("select")); // guess case
@@ -149,10 +149,12 @@ class SelectSingle {
                 System.out.println(sb.toString());
 
                 System.out.println("--------------------------------------------------------------------");
-                System.out.println("Replacement Statement (formatted):");                                
-                String rb = formatter.format("",results.get(path), "select");
+                System.out.println("Expected Statement (indentation and line breaks):");                                
+//                String rb = formatter.format("",results.get(path), "select");
+                String rb = results.get(path);
                 System.out.println(rb.toString());
-                
+
+///////////////////////////////////////// Differences
 //                System.out.println("--------------------------------------------------------------------");
 //                System.out.println("Diff statements: ");                                
 //                System.out.println();
@@ -171,7 +173,8 @@ class SelectSingle {
 //                    }
 //                  }
 //                System.out.println("--------------------------------------------------------------------");
-
+////////////////////////////////////////
+                
                 assertEquals(sb.toString(), rb.toString());
 
                 // assertEquals(actString, results.get(path) + "\n");
@@ -193,11 +196,12 @@ class SelectSingle {
 
                 
                 String sb2 = formatter.format("", actString2, "select");
-                System.out.println("Current String");
+                System.out.println("Current Statement (2021)");
                 System.out.println(sb2.toString());
 
-                String rb2 = formatter.format("", newStyles.get(path), "select");
-                System.out.println("Expected String");
+               // String rb2 = formatter.format("", newStyles.get(path), "select");
+                String rb2 = newStyles.get(path);
+                System.out.println("Expected Statement (2021)");
                 System.out.println(rb2.toString());
                 
                 assertEquals(sb2.toString(), rb2.toString());
@@ -205,7 +209,6 @@ class SelectSingle {
             
             }
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -229,7 +232,6 @@ class SelectSingle {
     }
 
     private String readResultFile(String path) throws FileNotFoundException {
-        String outString;
         Scanner in = new Scanner(new FileReader(path));
         StringBuilder sb = new StringBuilder();
         while (in.hasNext()) {
@@ -237,6 +239,23 @@ class SelectSingle {
             sb.append(text.concat(" "));
         }
         in.close();
+        SelectFormat sf = new SelectFormat(true);
+        String[] strings = sf.split(sb.toString().trim());
+        sb = new StringBuilder();
+        for (String str : strings) {
+            String s = str.toLowerCase();
+            if (s.startsWith("from") || s.startsWith("into") || s.startsWith("up") || s.startsWith("where")  || s.startsWith("fields")  ) {
+              sb.append("  ");
+            } else if (s.startsWith("and") || s.startsWith("or")) {
+                sb.append("    ");
+            }
+            sb.append(str
+                    .replaceFirst("(?i)(into)(corresponding)(fields)(of)(table) ", "$1 $2 $3 $4 $5 " ) 
+                    .replaceFirst("(?i)(into)(corresponding)(fields)(of) ", "$1 $2 $3 $4 " )
+                    .trim()
+                    );
+            sb.append("\n");
+        }
         return sb.toString().trim();
     }
 
