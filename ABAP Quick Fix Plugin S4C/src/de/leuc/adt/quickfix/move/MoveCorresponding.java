@@ -11,134 +11,129 @@ import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.move.MoveExact;
 
 import de.leuc.adt.quickfix.Activator;
-import de.leuc.adt.quickfix.QuickFixIcon;
 import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
 public class MoveCorresponding extends StatementAssistRegex implements IAssistRegex {
 
+	private static final String selectPattern =
+			// move-corresponding struct2 to struct3.
+			// 1 2 3
+			"(?s)(\\s*)move-corresponding\\s+(.*)\\s+to\\s+(.*)";
 
-    private static final String selectPattern =
-            //         move-corresponding  struct2   to   struct3.
-            //      1                         2              3
-            "(?s)(\\s*)move-corresponding\\s+(.*)\\s+to\\s+(.*)";
+	private static final String replaceByPattern = "$3 = corresponding #( $2 )";
+	/**
+	 * already contains line break
+	 */
+	// private String currentIndent;
+	private boolean comments = false;
+	private int indent_number = 2;
 
-    private static final String replaceByPattern = "$3 = corresponding #( $2 )";
-    /**
-     * already contains line break
-     */
-    private String currentIndent;
-    private boolean comments = false;
-    private int indent_number = 2;
+	public MoveCorresponding() {
+		super();
 
-    public MoveCorresponding() {
-        super();
+		IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode("org.eclipse.ui.editors");
+		Boolean bool = preferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
+				true);
+		int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
+		System.out.println("preferences are: " + bool + tabsno);
+	}
 
-        IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode("org.eclipse.ui.editors");
-        Boolean bool = preferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
-                true);
-        int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
-        System.out.println("preferences are: " + bool + tabsno);
-    }
+	@Override
+	public String getChangedCode() {
+		String temp2 = CodeReader.CurrentStatement.getStatement().replaceAll(" ", "");
+		String leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(move-corresponding)(.*)", "$1");
 
-    @Override
-    public String getChangedCode() {
-        String temp2 = CodeReader.CurrentStatement.getStatement().replaceAll(" ", "");
-        String leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(move-corresponding)(.*)", "$1");
+		String temp3 = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
+		// characters
+		String originalIndentation = temp3.replaceFirst("(?i)(?s)(\\s*)(move-corresponding)(.*)", "$1");
 
-        String temp3 = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
-        // characters
-        String originalIndentation = temp3.replaceFirst("(?i)(?s)(\\s*)(move-corresponding)(.*)", "$1");
-        
-        String temp = CodeReader.CurrentStatement.replaceAllPattern("(.*)"+System.lineSeparator()+"(.*)", "$1$2");
-        temp = temp.trim().replaceAll(" +", " ").trim().replaceAll("\\R+", ""); // condense spaces, remove line breaks
-        
-        String comentedOut = getCommentedOutStatement(CodeReader.CurrentStatement.getStatement());
-        return leadingBreaks.concat( 
-                getCommentPrefix().concat(
-                        comentedOut).concat(
-                                originalIndentation.concat( 
-                                    temp.replaceFirst(getMatchPattern(), getReplacePattern()) )) );
-    }
+		String temp = CodeReader.CurrentStatement.replaceAllPattern("(.*)" + System.lineSeparator() + "(.*)", "$1$2");
+		temp = temp.trim().replaceAll(" +", " ").trim().replaceAll("\\R+", ""); // condense spaces, remove line breaks
 
-    private String getCommentedOutStatement(String in) {
-        if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
-            // String ls = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*move-corresponding.*)","$1");
-            in = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*move-corresponding.*)", "*$2");
-            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
-        }
-        return "";
-    }
+		String comentedOut = getCommentedOutStatement(CodeReader.CurrentStatement.getStatement());
+		return leadingBreaks.concat(getCommentPrefix().concat(comentedOut)
+				.concat(originalIndentation.concat(temp.replaceFirst(getMatchPattern(), getReplacePattern()))));
+	}
 
-    @Override
-    public String getAssistShortText() {
-        return "Replace move-corresponding by corresponding #( ) [AOC 45].";
-    }
+	private String getCommentedOutStatement(String in) {
+		if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
 
-    @Override
-    public String getAssistLongText() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+			in = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*move-corresponding.*)", "*$2");
+			return in.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
+		}
+		return "";
+	}
 
-    private static Image icon;
-    @Override
-    public Image getAssistIcon() {
-        if (icon == null) {
-            icon = Activator.imageDescriptorFromPlugin(Activator.PLUGIN_ID, "icons/qfs4c16.png")
-                    .createImage();
-        }
-        return icon;
-    }
+	@Override
+	public String getAssistShortText() {
+		return "Replace move-corresponding by corresponding #( ) [AOC 45].";
+	}
 
-    @Override
-    public boolean canAssist() {
-        if (CodeReader.CurrentStatement.matchPattern(getMatchPattern()) && !(new MoveExact().canAssist())) {
+	@Override
+	public String getAssistLongText() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-            // get current indentation for statement, prefix with line break
-            String temp = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$1");
-            //  currentIndent = System.lineSeparator().concat(temp.replaceAll("\\s*\\R", ""));// remove spaces
-           
+	private static Image icon;
 
-            IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-            comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
-            indent_number = store.getInt(PreferenceConstants.INDENT);
+	@Override
+	public Image getAssistIcon() {
+		if (icon == null) {
+			icon = Activator.imageDescriptorFromPlugin(Activator.PLUGIN_ID, "icons/qfs4c16.png").createImage();
+		}
+		return icon;
+	}
 
-            return true;
-        }
-        return false;
-    }
+	@Override
+	public boolean canAssist() {
+		if (CodeReader.CurrentStatement.matchPattern(getMatchPattern()) && !(new MoveExact().canAssist())) {
 
-    @Override
-    public int getStartOfReplace() {
-        return CodeReader.CurrentStatement.getBeginOfStatement();
-    }
+			// get current indentation for statement, prefix with line break
+			String temp = CodeReader.CurrentStatement.replacePattern(getMatchPattern(), "$1");
+			// currentIndent = System.lineSeparator().concat(temp.replaceAll("\\s*\\R",
+			// ""));// remove spaces
 
-    @Override
-    public int getReplaceLength() {
-        return CodeReader.CurrentStatement.getStatementLength();
-    }
+			IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+			comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
+			indent_number = store.getInt(PreferenceConstants.INDENT);
 
-    @Override
-    public String getMatchPattern() {
-        return selectPattern;
+			return true;
+		}
+		return false;
+	}
 
-    }
+	@Override
+	public int getStartOfReplace() {
+		return CodeReader.CurrentStatement.getBeginOfStatement();
+	}
 
-    @Override
-    public String getReplacePattern() {
-        return replaceByPattern;
-    }
+	@Override
+	public int getReplaceLength() {
+		return CodeReader.CurrentStatement.getStatementLength();
+	}
 
-    private String getCommentPrefix() {
-        if (comments) {
-            String comment = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.COMMENT_TEXT);
-            return comment.replace("${DATE}", java.time.LocalDateTime.now().toString()).concat("\n");
-        }
-        return "";
-    }
+	@Override
+	public String getMatchPattern() {
+		return selectPattern;
 
-    private String getPrefix() {
-        return String.format("%" + indent_number + "s", "");
-    }
+	}
+
+	@Override
+	public String getReplacePattern() {
+		return replaceByPattern;
+	}
+
+	private String getCommentPrefix() {
+		if (comments) {
+			String comment = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.COMMENT_TEXT);
+			return comment.replace("${DATE}", java.time.LocalDateTime.now().toString()).concat("\n");
+		}
+		return "";
+	}
+
+	private String getPrefix() {
+		return String.format("%" + indent_number + "s", "");
+	}
 
 }

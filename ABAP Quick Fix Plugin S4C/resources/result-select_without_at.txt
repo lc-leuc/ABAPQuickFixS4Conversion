@@ -1,1 +1,0 @@
-select * FROM wbit ""test iNto @wbit up to 1 rows where tkonn = @tkonn and tposn = @tposn. endselect
