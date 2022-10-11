@@ -28,3 +28,10 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 #### 1.2.2
 
 * Respects upper case key words.
+
+#### 1.3.3
+
+* Named groups in regular expressions.
+* Allow _into table_ for _new syle_ fixes.
+* Include initialization button for _order by_ lists in preferences.
+* Fix issues with replacements and formatting.
