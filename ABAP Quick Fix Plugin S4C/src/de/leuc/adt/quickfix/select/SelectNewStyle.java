@@ -12,32 +12,30 @@ import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 
 import de.leuc.adt.quickfix.Activator;
-import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
 import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
 public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex {
 
 	/**
 	 * Capturing Groups
-	 * <ul> 
-	 * <li> leading line breaks 
-	 * <li> leading spaces 
-	 * <li> word "single"
-	 * <li> field list
-	 * <li> table
-	 * <li> into-data statement
-	 * <li> where statement
+	 * <ul>
+	 * <li>leading line breaks
+	 * <li>leading spaces
+	 * <li>word "single"
+	 * <li>field list
+	 * <li>table
+	 * <li>into-data statement
+	 * <li>where statement
 	 * </ul>
 	 */
 	private static final String selectPattern =
 			// dot is not part of the statement
 			// select single * from wbhk into @data(result) where tkonn = ''
 			"(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+(?<from>from)\\s+(?<table>.*)\\s+"
-		+	"(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)\\s+(?<where>where)\\s+(?<condition>.*)?";
+					+ "(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)\\s+(?<where>where)\\s+(?<condition>.*)?";
 
-    private static final String modernTargetSelectPattern = 
-            "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
-            + " ${into} ${variable}";
+	private static final String modernTargetSelectPattern = "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
+			+ " ${into} ${variable}";
 
 	private String currentTable;
 	/**
@@ -61,43 +59,42 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 	@Override
 	public String getChangedCode() {
 
-        String statement = CodeReader.CurrentStatement.getStatement();
-        // determine comments preceding the statement
-        String initialComment = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$1");
-        // determine statement without preceding comments
-        statement = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$2");
+		String statement = CodeReader.CurrentStatement.getStatement();
+		// determine comments preceding the statement
+		String initialComment = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$1");
+		// determine statement without preceding comments
+		statement = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$2");
 
-        // statement = statement.replaceAll("\r\n\\s*[\r\n]", "");
-        // wee need to remember the indentation
-        String originalIndentation = statement.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1");
+		// statement = statement.replaceAll("\r\n\\s*[\r\n]", "");
+		// wee need to remember the indentation
+		String originalIndentation = statement.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1");
 
-        SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
+		SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
 
-        // if preferences are set: produce a commented version of the original text
-        String comentedOut = getCommentedOutStatement(statement);
+		// if preferences are set: produce a commented version of the original text
+		String comentedOut = getCommentedOutStatement(statement);
 
-        // remove all line feed characters and leading spaces
-        statement = statement.replaceAll("[\r\n]", "").trim();
+		// remove all line feed characters and leading spaces
+		statement = statement.replaceAll("[\r\n]", "").trim();
 
-        // remember the current table, in order to determine order-by statement
-        currentTable = statement.replaceFirst(getMatchPattern(), "${table}");
-        
+		// remember the current table, in order to determine order-by statement
+		currentTable = statement.replaceFirst(getMatchPattern(), "${table}");
 
-        IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-        if (store.getBoolean(PreferenceConstants.NEW_STYLE)) {
-            // do the actual replacement
-            statement = statement.replaceFirst(getMatchPattern(), getReplacePattern());
-        }
+		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		if (store.getBoolean(PreferenceConstants.NEW_STYLE)) {
+			// do the actual replacement
+			statement = statement.replaceFirst(getMatchPattern(), getReplacePattern());
+		}
 //        // do the actual replacement
 //        String replacement = statement.replaceFirst(getMatchPattern(), getReplacePattern());
 //
 //        // format 
 //        String newStatement = formatter.format(originalIndentation, replacement);
-        String newStatement = formatter.format(originalIndentation, statement, "select");
-        // concatenate leading breaks with automatic comment (if set in prefs)
-        // as well as original statement (as comment if set in prefs) and new statement
-        return initialComment.concat(getCommentPrefix()).concat(comentedOut).concat(newStatement);
-	    
+		String newStatement = formatter.format(originalIndentation, statement, "select");
+		// concatenate leading breaks with automatic comment (if set in prefs)
+		// as well as original statement (as comment if set in prefs) and new statement
+		return initialComment.concat(getCommentPrefix()).concat(comentedOut).concat(newStatement);
+
 	}
 
 	private String getCommentedOutStatement(String in) {
@@ -178,10 +175,6 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 			return comment.replace("${DATE}", java.time.LocalDateTime.now().toString()).concat("\n");
 		}
 		return "";
-	}
-
-	private String getPrefix() {
-		return String.format("%" + indent_number + "s", "");
 	}
 
 }
