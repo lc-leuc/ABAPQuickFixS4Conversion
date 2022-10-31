@@ -99,34 +99,44 @@ class SelectSingle {
             while (it.hasNext()) {
                 String path = (String) it.next();
 
-                String outString = "";
-                outString = originals.get(path);// reatTextFile("resources/select_with_pre_line.txt");
+                String statement = "";
+                statement = originals.get(path);// reatTextFile("resources/select_with_pre_line.txt");
                 System.out.println("====================================================================");
                 System.out.println("Testing: "+ path);
                 System.out.println("====================================================================");
                 System.out.println("Current Select Statement:");
-                System.out.println(outString);
+                System.out.println(statement);
                 System.out.println("--------------------------------------------------------------------");
 
                 de.leuc.adt.quickfix.select.SelectSingle cut = new de.leuc.adt.quickfix.select.SelectSingle();
                 String selectPattern = cut.getMatchPattern();
 
                 Pattern pattern = Pattern.compile(selectPattern, Pattern.MULTILINE);
-                Matcher matcher = pattern.matcher(outString);
+                Matcher matcher = pattern.matcher(statement);
 
+
+                SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
                 
-                String actString = outString.replaceFirst(selectPattern, replaceBy);
-
-                actString = actString.replaceAll(" \\.", ".");
+                // remove all line feed characters and leading spaces
+                statement = statement.replaceAll("[\r\n]", "").trim();
+//                // remember the current table, in order to determine order-by statement
+//                currentTable = statement.replaceFirst(getMatchPattern(), "${table}").replaceFirst( "(.*)\\s+as\\s+.*", "$1" ).trim();
+                // do the actual replacement
+                String replacement = statement.replaceFirst(selectPattern, replaceBy);
+                // format 
+                String newStatement = formatter.format("", replacement, "select");
+                 
+                
+                replacement = replacement.replaceAll(" \\.", ".");
 //                String controlString = outString.replaceFirst(selectPattern, "|$7|");
 //                System.out.println(controlString);
 
-                String breaks = outString.replaceFirst(selectPattern, "$1");
+                String breaks = replacement.replaceFirst(selectPattern, "$1");
 
                 System.out.println();                
                 System.out.println("Parts of Select Statement:" );
                 for (int i = 1; i < 12; i++) {
-                    System.out.println("" + i + "  |" + outString.replaceFirst(selectPattern, "$" + i) + "|");
+                    System.out.println("" + i + "  |" + statement.replaceFirst(selectPattern, "$" + i) + "|");
                 }
                 System.out.println("--------------------------------------------------------------------");
                 System.out.println();                
@@ -137,16 +147,14 @@ class SelectSingle {
                 System.out.println("--------------------------------------------------------------------");
                 System.out.println();                
 
-                System.out.println("Current Statement:  |" + actString + "|");
+                System.out.println("Current Statement:  |" + replacement + "|");
                 System.out.println("Expected Statement: |" + results.get(path) + "|");
 
                 System.out.println("--------------------------------------------------------------------");
                 System.out.println("Current Statement (formatted):");                
 
                 
-        		SelectFormat formatter = new SelectFormat(outString.contains("select")); // guess case
-                String sb = formatter.format("", actString, "select");
-                System.out.println(sb.toString());
+                System.out.println(newStatement.toString());
 
                 System.out.println("--------------------------------------------------------------------");
                 System.out.println("Expected Statement (indentation and line breaks):");                                
@@ -175,7 +183,7 @@ class SelectSingle {
 //                System.out.println("--------------------------------------------------------------------");
 ////////////////////////////////////////
                 
-                assertEquals(sb.toString(), rb.toString());
+                assertEquals(newStatement.toString(), rb.toString());
 
                 // assertEquals(actString, results.get(path) + "\n");
                 // "select * from wbit into @data(result) up to 1 rows where tkonn eq @tkonn and
@@ -184,18 +192,18 @@ class SelectSingle {
             
                 ////////////////////////////////////////////////
                 
-                String actString2 = outString.replaceFirst(selectPattern, replaceByModern);
+                String replacement2021 = statement.replaceFirst(selectPattern, replaceByModern);
 
             
                 System.out.println();
                 System.out.println("--------------------------------------------------------------------");
                 System.out.println("Testing newest style (2021): " + path);
                 System.out.println("--------------------------------------------------------------------");
-                System.out.println("actString 2021 |" + actString2 + "|");
+                System.out.println("actString 2021 |" + replacement2021 + "|");
                 System.out.println("expString 2021 |" + newStyles.get(path) + "\n|");
 
                 
-                String sb2 = formatter.format("", actString2, "select");
+                String sb2 = formatter.format("", replacement2021, "select");
                 System.out.println("Current Statement (2021)");
                 System.out.println(sb2.toString());
 
@@ -207,6 +215,16 @@ class SelectSingle {
                 assertEquals(sb2.toString(), rb2.toString());
 
             
+            }
+
+            for (String file : dir.list()) {
+                if (file.equals( "attic" ) ) {
+                    continue;
+                }
+                if ( ! file.startsWith("result-") && ! file.startsWith("2021-")) {
+                    String textFilePath = dir.getPath() + File.separator + file;
+                    System.out.println(textFilePath);
+                }
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

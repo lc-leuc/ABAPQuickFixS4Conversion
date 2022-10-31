@@ -31,12 +31,12 @@ public class SelectFormat {
 	}
 
 	public String format(String originalIndentation, String replacement, String startWith) {
-		String[] s = split(replacement.replaceAll("\\s\\s*", " ")); // remove multiple spaces
-		String newStatement = "";
-		for (String line : s) {
-			newStatement += formatLine(line, originalIndentation, startWith);
-		}
-		return newStatement;
+        String[] s = split(replacement.replaceAll("\\s\\s*", " ")); // remove multiple spaces
+        String newStatement = "";
+        for (String line : s) {
+            newStatement += formatLine(line, originalIndentation, startWith);
+        }
+        return newStatement.replaceAll("\\s+\\.", ".");
 	}
 
 	public String formatLine(String input, String originalIndentation, String start) {
