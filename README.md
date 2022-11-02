@@ -25,6 +25,12 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 ### Changes
 
+#### 1.3.4
+
+* Allow various orders of clauses: into ..., where ..., from ...
+* Fix and improve formatting and conversion to new styles.
+* Re-init default order by list preferences.
+
 #### 1.2.2
 
 * Respects upper case key words.
