@@ -46,7 +46,8 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 //                    + "\\s+(?<where>where)\\s+(?<condition>.*)";
     // allowing for different sort orders of into, from and where
     public static final String selectPattern = "(?i)(?<breaks>[\\n\\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<single>single)\\s+(?<fields>.*)"
-            + "(?:(?:(?<from>from)(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
+            + "(?:(?:(?<from>from)(?<table>.*))" 
+            + "|(?:(?<into>into)(?<variable>.*))"
             + "|(?:(?<where>where)(?<condition>.*))){3}"; // only one of each
 
     public static final String targetSelectPatternStart = "${select} ${fields} ${from} ${table} ${into} ${variable} up to 1 rows ${where} ${condition}";

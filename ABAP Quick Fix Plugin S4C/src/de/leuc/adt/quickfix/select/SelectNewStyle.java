@@ -28,15 +28,21 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
      * <li>where statement
      * </ul>
      */
-    private static final String selectPattern =
-            // dot is not part of the statement
-            // select single * from wbhk into @data(result) where tkonn = ''
-            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)"
-                    + "\\s+(?<from>from)\\s+(?<table>.*)"
-                    + "\\s+(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)"
-                    + "\\s+(?<where>where)\\s+(?<condition>.*)?";
+//    private static final String selectPattern =
+//            // dot is not part of the statement
+//            // select single * from wbhk into @data(result) where tkonn = ''
+//            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)"
+//                    + "\\s+(?<from>from)\\s+(?<table>.*)"
+//                    + "\\s+(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)"
+//                    + "\\s+(?<where>where)\\s+(?<condition>.*)?";
+    // pattern allows different orders of into, from, where
+    private static final String selectPattern = 
+            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+"
+            + "(?:(?:(?<from>from)\\s+(?<table>.*))"
+            + "|(?:(?<into>into)(?<variable>.*))"
+            + "|(?:(?<where>where)\\s+(?<condition>.*)?)){3}";
 
-    private static final String modernTargetSelectPattern = "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
+    public static final String modernTargetSelectPattern = "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
             + " ${into} ${variable}";
 
     private String currentTable;
@@ -136,7 +142,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         if (currentStatement.toLowerCase().contains(" single ") || currentStatement.contains(("@"))) {
             return false;
         }
-        if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {
+        if (Pattern.compile(getMatchPattern()).matcher(currentStatement.replaceAll("[\r\n]", "").trim()).find()) {
             // table name to decide on order by clause
 
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();

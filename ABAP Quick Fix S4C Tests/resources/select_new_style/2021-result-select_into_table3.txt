@@ -1,0 +1,5 @@
+select
+  from mara
+  fields *
+  where mtart = 'FERT'
+  into table @tmara

@@ -1,0 +1,9 @@
+      select single vbeln
+                    gjahr
+                    posnr
+        into (g_mblnr, g_mjahr, g_zeile)
+        from  wbgt
+        where doc_type eq c_doc_type_g and
+              tkonn    eq gs_komwbhi-tkonn and
+              tposn    eq gs_komwbhi-tposn and
+              del_flag eq c_del_flag_init

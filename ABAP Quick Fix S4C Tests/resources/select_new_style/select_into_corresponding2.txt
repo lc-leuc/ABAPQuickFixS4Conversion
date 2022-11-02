@@ -1,0 +1,8 @@
+           SELECT *
+              FROM  wbgt
+              INTO CORRESPONDING FIELDS OF TABLE gt_komwbgt_pred
+              WHERE doc_type EQ gs_komwbgt-pred_doc_type       AND
+                    vbeln    EQ gs_komwbgt-pred_document(10)   AND
+                    gjahr    EQ gs_komwbgt-pred_document+10(4) AND
+                  ( posnr    EQ gs_komwbgt-pred_item           OR
+                    posnr    EQ c_posnr_init )
