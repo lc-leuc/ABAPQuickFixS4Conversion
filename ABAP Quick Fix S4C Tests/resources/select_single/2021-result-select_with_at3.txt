@@ -1,0 +1,2 @@
+select from wbit fields * where tkonn eq @tkonn and tposn = @tposn into @data(result) up to 1 rows. endselect
+

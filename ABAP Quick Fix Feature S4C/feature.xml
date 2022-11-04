@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="de.leuc.adt.quickfix"
-      label="ABAP Quick Fix S4C"
-      version="1.3.3.qualifier"
+      label="ABAP QuickFix S4C"
+      version="1.4.0.qualifier"
       provider-name="leuc.de">
 
    <description url="https://abapblog.com">
@@ -64,7 +64,7 @@ END OF TERMS AND CONDITIONS
    </license>
 
    <url>
-      <update label="LEUC Update Site" url="http://leuc.de/abapquickfixs4c"/>
+      <update label="ABAP QuickFix S4C Update Site" url="http://leuc.de/abapquickfixs4c"/>
    </url>
 
    <plugin

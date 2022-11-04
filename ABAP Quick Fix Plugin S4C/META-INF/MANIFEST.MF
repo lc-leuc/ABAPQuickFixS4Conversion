@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ABAP Quick Fix S4C Plugin
 Bundle-SymbolicName: de.leuc.adt.quickfix;singleton:=true
-Bundle-Version: 1.3.3.qualifier
+Bundle-Version: 1.4.0.qualifier
 Bundle-Activator: de.leuc.adt.quickfix.Activator
 Bundle-Vendor: leuc.de
 Require-Bundle: org.eclipse.ui,
@@ -21,7 +21,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.json.core,
  org.eclipse.wst.json.schemaprocessor,
  org.eclipse.wst.json.ui;bundle-version="1.0.600"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: de.leuc.adt.quickfix
 Bundle-ActivationPolicy: lazy
 Import-Package: com.sap.adt.atc.model.autoquickfix,

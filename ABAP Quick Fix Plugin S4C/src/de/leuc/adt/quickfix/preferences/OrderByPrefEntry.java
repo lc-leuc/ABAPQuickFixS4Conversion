@@ -1,6 +1,6 @@
 package de.leuc.adt.quickfix.preferences;
 
-public class OrderByPrefEntry implements Comparable<OrderByPrefEntry>{
+public class OrderByPrefEntry implements Comparable<OrderByPrefEntry> {
     private String tableMatch;
     private String orderBy;
 
@@ -22,7 +22,7 @@ public class OrderByPrefEntry implements Comparable<OrderByPrefEntry>{
 
     @Override
     public int compareTo(OrderByPrefEntry ue) {
-        return getTableMatch().compareTo(ue.getTableMatch()) ;
+        return getTableMatch().compareTo(ue.getTableMatch());
     }
 
 }

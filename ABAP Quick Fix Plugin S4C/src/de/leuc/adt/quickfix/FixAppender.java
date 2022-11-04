@@ -14,13 +14,13 @@ import de.leuc.adt.quickfix.select.SelectSingleNewStyle;
 
 public class FixAppender implements IFixAppender {
 
-	@Override
-	public ArrayList<StatementAssist> additional_fixes(IQuickAssistInvocationContext context) {
-		ArrayList<StatementAssist> list = new ArrayList<StatementAssist>();
-		list.add(new SelectSingle());
-		list.add(new SelectSingleNewStyle());
-		list.add(new SelectNewStyle());
-		list.add(new MoveCorresponding());
-		return list;
-	}
+    @Override
+    public ArrayList<StatementAssist> additional_fixes(IQuickAssistInvocationContext context) {
+        ArrayList<StatementAssist> list = new ArrayList<StatementAssist>();
+        list.add(new SelectSingle());
+        list.add(new SelectSingleNewStyle());
+        list.add(new SelectNewStyle());
+        list.add(new MoveCorresponding());
+        return list;
+    }
 }

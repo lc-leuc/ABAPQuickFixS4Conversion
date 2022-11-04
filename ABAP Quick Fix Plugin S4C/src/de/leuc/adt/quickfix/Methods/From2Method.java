@@ -8,14 +8,13 @@ import com.abapblog.adt.quickfix.assist.syntax.statements.move.MoveExact;
 
 public class From2Method extends StatementAssistRegex implements IAssistRegex {
 
-    
     private static final String formPattern =
-            // form  'SOME_FORM'. <other text lines> endform.
+            // form 'SOME_FORM'. <other text lines> endform.
             "form '(.*)'.(.*)endform.";
 
     public From2Method() {
         super();
-       
+
     }
 
     @Override
@@ -46,7 +45,7 @@ public class From2Method extends StatementAssistRegex implements IAssistRegex {
     public boolean canAssist() {
         if (CodeReader.CurrentStatement.matchPattern(getMatchPattern()) && !(new MoveExact().canAssist())) {
             // table name to decide on order by clause
-                 return true;
+            return true;
         }
         return false;
     }
@@ -74,6 +73,4 @@ public class From2Method extends StatementAssistRegex implements IAssistRegex {
         return null;
     }
 
-    
-    
 }

@@ -26,7 +26,7 @@ import de.leuc.adt.quickfix.select.SelectFormat;
  * @author lc
  *
  */
-class SelectSingle {
+class SelectNewStyle {
 
     /**
      * @throws java.lang.Exception
@@ -56,21 +56,9 @@ class SelectSingle {
     void tearDown() throws Exception {
     }
 
-    // we are testing without order by clause, i.e. an additional end of statement
-    // (dot) is necessary
-    private static final String targetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternStart
-            + ".";
-    // "${select} ${fields} ${from} ${table} ${into} ${variable} up to 1 rows
-    // ${where} ${condition}.";
-    private static final String targetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternEnd;
-    // "endselect";
-    private static final String modernTargetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternStart;
-    // "${select} ${from} ${table} fields ${fields} ${where} ${condition}";
-    private static final String modernTargetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternEnd;
-    // " ${into} ${variable} up to 1 rows. endselect";
+    private static final String modernTargetSelectPattern = de.leuc.adt.quickfix.select.SelectNewStyle.modernTargetSelectPattern;
 
-    private static final String replaceBy = targetSelectPatternStart + targetSelectPatternEnd;
-    private static final String replaceByModern = modernTargetSelectPatternStart + modernTargetSelectPatternEnd;
+    private static final String replaceByModern = modernTargetSelectPattern;
 
     @Test
     void replace() {
@@ -81,7 +69,7 @@ class SelectSingle {
 
         try {
             // test with strings from files in resources
-            File dir = new File("resources" + File.separator + "select_single");
+            File dir = new File("resources" + File.separator + "select_new_style");
             if (dir.isDirectory()) {
                 String[] list = dir.list();
                 for (String file : list) {
@@ -112,7 +100,7 @@ class SelectSingle {
                 System.out.println(statement);
                 System.out.println("--------------------------------------------------------------------");
 
-                de.leuc.adt.quickfix.select.SelectSingle cut = new de.leuc.adt.quickfix.select.SelectSingle();
+                de.leuc.adt.quickfix.select.SelectNewStyle cut = new de.leuc.adt.quickfix.select.SelectNewStyle();
                 String selectPattern = cut.getMatchPattern();
 
                 Pattern pattern = Pattern.compile(selectPattern, Pattern.MULTILINE);
@@ -125,7 +113,7 @@ class SelectSingle {
 //                // remember the current table, in order to determine order-by statement
 //                currentTable = statement.replaceFirst(getMatchPattern(), "${table}").replaceFirst( "(.*)\\s+as\\s+.*", "$1" ).trim();
                 // do the actual replacement
-                String replacement = statement.replaceFirst(selectPattern, replaceBy);
+                String replacement = statement;// .replaceFirst(selectPattern, replaceBy);
                 // format
                 String newStatement = formatter.format("", replacement, "select");
 
@@ -159,7 +147,6 @@ class SelectSingle {
 
                 System.out.println("--------------------------------------------------------------------");
                 System.out.println("Expected Statement (indentation and line breaks):");
-//                String rb = formatter.format("",results.get(path), "select");
                 String rb = results.get(path);
                 System.out.println(rb.toString());
 
@@ -167,7 +154,7 @@ class SelectSingle {
 //                System.out.println("--------------------------------------------------------------------");
 //                System.out.println("Diff statements: ");                                
 //                System.out.println();
-//                List<Diff> diffs = new DiffMatchPatch().diff_main(sb, rb);
+//                List<Diff> diffs = new DiffMatchPatch().diff_main(newStatement, rb);
 //                //System.out.println(diffs);
 //                diffs.forEach( new Consumer<Diff>() { 
 //                    public void accept(Diff t) {
@@ -202,13 +189,35 @@ class SelectSingle {
                 System.out.println("expString 2021 |" + newStyles.get(path) + "\n|");
 
                 String sb2 = formatter.format("", replacement2021, "select");
+                System.out.println("--------------------------------------------------------------------");
                 System.out.println("Current Statement (2021)");
                 System.out.println(sb2.toString());
 
                 // String rb2 = formatter.format("", newStyles.get(path), "select");
                 String rb2 = newStyles.get(path);
+                System.out.println("--------------------------------------------------------------------");
                 System.out.println("Expected Statement (2021)");
                 System.out.println(rb2.toString());
+
+///////////////////////////////////////// Differences
+//                System.out.println("--------------------------------------------------------------------");
+//                System.out.println("Diff statements: ");                                
+//                System.out.println();
+//                List<Diff> diffs2 = new DiffMatchPatch().diff_main(sb2, rb2);
+//                diffs2.forEach( new Consumer<Diff>() { 
+//                public void accept(Diff t) {
+//                  System.out.println( t.operation  +"\n" + t.text  + "\n " + t.operation ); 
+//                  } 
+//                } );
+//                System.out.println("\n--------------------------------------------------------------------\n"
+//                  + "Differences:");
+//                for (Diff diff : diffs2) {
+//                if (diff.operation == Operation.INSERT) {
+//                System.out.println(diff.text); 
+//                }
+//                }
+//                System.out.println("--------------------------------------------------------------------");
+////////////////////////////////////////
 
                 assertEquals(sb2.toString(), rb2.toString());
 

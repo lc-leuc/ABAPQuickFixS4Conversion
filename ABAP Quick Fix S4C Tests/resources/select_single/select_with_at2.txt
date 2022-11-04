@@ -1,0 +1,5 @@
+
+
+    select single * into @data(result) from wbit 
+      where tkonn eq @tkonn    
+        and tposn = @tposn
