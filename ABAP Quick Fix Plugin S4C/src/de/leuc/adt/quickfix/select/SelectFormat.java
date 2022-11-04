@@ -51,7 +51,8 @@ public class SelectFormat {
             if (selection.contains(" ") && !selection.contains(",")) {
                 in = transformCase(start).concat(" ".concat(selection.replaceAll("\\s+", ", ")));
             }
-            return indentation + in.trim();
+            return in.trim();
+//            return indentation + in.trim();
         } else if (in2.startsWith("from ")) {
             String table = in.replaceFirst("(?i)from\\s+(.*)", "$1").trim();
             in = handleInLineComment(transformCase("from ").concat(table.replaceAll("\\s+", ", ")));

@@ -1,5 +1,6 @@
 package de.leuc.adt.quickfix.select;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -8,8 +9,11 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
+import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapCodeReader;
+import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
 import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
+import com.sap.adt.tools.abapsource.ui.sources.IAbapSourceScannerServices.Token;
 
 import de.leuc.adt.quickfix.Activator;
 import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
@@ -45,10 +49,10 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 //                    + "\\s+(?<into>into)\\s+(?<variable>.*)"
 //                    + "\\s+(?<where>where)\\s+(?<condition>.*)";
     // allowing for different sort orders of into, from and where
-    public static final String selectPattern = "(?i)(?<breaks>[\\n\\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<single>single)\\s+(?<fields>.*)"
-            + "(?:(?:(?<from>from)(?<table>.*))" 
-            + "|(?:(?<into>into)(?<variable>.*))"
-            + "|(?:(?<where>where)(?<condition>.*))){3}"; // only one of each
+    public static final String selectPattern = "(?i)"
+            // + "(?<breaks>[\n\r]*)(?<spaces>\s*)"
+            + "(?<select>select)\s+(?<single>single)\s+(?<fields>.*)" + "(?:(?:(?<from>from)(?<table>.*))"
+            + "|(?:(?<into>into)(?<variable>.*))" + "|(?:(?<where>where)(?<condition>.*))){3}"; // only one of each
 
     public static final String targetSelectPatternStart = "${select} ${fields} ${from} ${table} ${into} ${variable} up to 1 rows ${where} ${condition}";
     public static final String targetSelectPatternEnd = "endselect";
@@ -76,44 +80,78 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public String getChangedCode() {
+//    	 String code = CodeReader.getCode();
 
-        String statement = CodeReader.CurrentStatement.getStatement();
-        // determine comments preceding the statement
-        String initialComment = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$1");
-        // determine statement without preceding comments
-        statement = statement.replaceFirst("(?i)(?s)((?:\r|\n|\\s*\\\"|^\\*).*\\n)(\\s*select\\s.*)", "$2");
+        AbapStatement currentStatement = CodeReader.CurrentStatement;
+        String statement = currentStatement.getStatement();
+        String origin = statement;
+        int beginOfStatement = currentStatement.getBeginOfStatement();
+        List<Token> statementTokens = AbapCodeReader.scannerServices.getStatementTokens(AbapCodeReader.document,
+                beginOfStatement);
+        int beginOfStatementReplacement = statementTokens.get(0).offset;
+
+//        // determine comments preceding the statement
+//        String initialComment = "";//statement.replaceFirst("(?i)(?s)((?:\r|\n|\s*\\\"|^\\*).*\n)(\s*select\s.*)", "$1");
+//        // determine statement without preceding comments
+//        statement = statement.replaceFirst("(?i)(?s)((?:\r|\n|\s*\\\"|^\\*).*\n)(\s*select\s.*)", "$2");
 
         // statement = statement.replaceAll("\r\n\\s*[\r\n]", "");
         // wee need to remember the indentation
-        String originalIndentation = statement.replaceFirst("(?i)(?s)(\\s*)(select)(.*)", "$1");
+        String originalIndentation = "";// statement.replaceFirst("(?i)(?s)(\s*)(select)(.*)", "$1");
 
         SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
 
         // if preferences are set: produce a commented version of the original text
-        String comentedOut = getCommentedOutStatement(statement);
 
         // remove all line feed characters and leading spaces
         statement = statement.replaceAll("[\r\n]", "").trim();
 
+        System.out.println("-----------------------------");
+        System.out.println("begin st     " + beginOfStatement);
+        System.out.println("begin rep    " + beginOfStatementReplacement);
+        System.out.println("begin start  " + getStartOfReplace());
+        System.out.println("begin length " + getReplaceLength());
+        display_statement_all(statement);
         // remember the current table, in order to determine order-by statement
-        currentTable = statement.replaceFirst(getMatchPattern(), "${table}").replaceFirst("(.*)\\s+as\\s+.*", "$1")
+        currentTable = statement.replaceFirst(getMatchPattern(), "${table}").replaceFirst("(.*)\s+as\s+.*", "$1")
                 .trim();
 
         // do the actual replacement
         String replacement = statement.replaceFirst(getMatchPattern(), getReplacePattern());
 
-        // format
-        String newStatement = formatter.format(originalIndentation, replacement, "select");
-
         // concatenate leading breaks with automatic comment (if set in prefs)
         // as well as original statement (as comment if set in prefs) and new statement
-        return initialComment.concat(getCommentPrefix()).concat(comentedOut).concat(newStatement);
+        String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
+        originalIndentation = leading.replaceAll(".*[\r\n]", "");
+        String comentedOut = getCommentedOutStatement(origin, originalIndentation);
+
+        // format
+        String newStatement = formatter.format(originalIndentation, replacement, "select");
+        return leading + getCommentPrefix().concat(comentedOut).concat(newStatement);
     }
 
-    private String getCommentedOutStatement(String in) {
+    private void display_statement_all(String statement) {
+        display_statement_single(statement, "select");
+        display_statement_single(statement, "single");
+        display_statement_single(statement, "fields");
+        display_statement_single(statement, "from");
+        display_statement_single(statement, "table");
+        display_statement_single(statement, "into");
+        display_statement_single(statement, "variable");
+        display_statement_single(statement, "where");
+        display_statement_single(statement, "condition");
+
+    }
+
+    private void display_statement_single(String s, String n) {
+        System.out.println(n + ": " + s.replaceFirst(getMatchPattern(), "${" + n + "}"));
+
+    }
+
+    private String getCommentedOutStatement(String in, String indent) {
         if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
-            in = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*select.*)", "*$2");
-            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
+            in = in.replaceFirst("(?i)(?s)([\n\r]*)(\s*select.*)", "*" + indent + "$2");
+            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat(".\n".concat(indent));
         }
         return "";
     }

@@ -28,7 +28,7 @@ import de.leuc.adt.quickfix.select.SelectFormat;
  */
 class SelectSingle {
 
-	/**
+    /**
      * @throws java.lang.Exception
      */
     @BeforeAll
@@ -55,16 +55,19 @@ class SelectSingle {
     @AfterEach
     void tearDown() throws Exception {
     }
-  
-    // we are testing without order by clause, i.e. an additional end of statement (dot) is necessary
-    private static final String targetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternStart + ".";
-    //"${select} ${fields} ${from} ${table} ${into} ${variable} up to 1 rows ${where} ${condition}.";
+
+    // we are testing without order by clause, i.e. an additional end of statement
+    // (dot) is necessary
+    private static final String targetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternStart
+            + ".";
+    // "${select} ${fields} ${from} ${table} ${into} ${variable} up to 1 rows
+    // ${where} ${condition}.";
     private static final String targetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternEnd;
-    //"endselect";
+    // "endselect";
     private static final String modernTargetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternStart;
-            //"${select} ${from} ${table} fields ${fields} ${where} ${condition}";
+    // "${select} ${from} ${table} fields ${fields} ${where} ${condition}";
     private static final String modernTargetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternEnd;
-            //" ${into} ${variable} up to 1 rows. endselect";
+    // " ${into} ${variable} up to 1 rows. endselect";
 
     private static final String replaceBy = targetSelectPatternStart + targetSelectPatternEnd;
     private static final String replaceByModern = modernTargetSelectPatternStart + modernTargetSelectPatternEnd;
@@ -82,15 +85,16 @@ class SelectSingle {
             if (dir.isDirectory()) {
                 String[] list = dir.list();
                 for (String file : list) {
-                    if (file.equals( "attic" ) ) {
+                    if (file.equals("attic")) {
                         continue;
                     }
-                    if ( ! file.startsWith("result-") && ! file.startsWith("2021-")) {
+                    if (!file.startsWith("result-") && !file.startsWith("2021-")) {
                         String textFilePath = dir.getPath() + File.separator + file;
                         System.out.println(textFilePath);
                         originals.put(textFilePath, readTextFile(textFilePath));
                         results.put(textFilePath, readResultFile(dir.getPath() + File.separator + "result-" + file));
-                        newStyles.put(textFilePath, readResultFile(dir.getPath() + File.separator + "2021-result-" + file));
+                        newStyles.put(textFilePath,
+                                readResultFile(dir.getPath() + File.separator + "2021-result-" + file));
                     }
                 }
             }
@@ -102,7 +106,7 @@ class SelectSingle {
                 String statement = "";
                 statement = originals.get(path);// reatTextFile("resources/select_with_pre_line.txt");
                 System.out.println("====================================================================");
-                System.out.println("Testing: "+ path);
+                System.out.println("Testing: " + path);
                 System.out.println("====================================================================");
                 System.out.println("Current Select Statement:");
                 System.out.println(statement);
@@ -114,50 +118,47 @@ class SelectSingle {
                 Pattern pattern = Pattern.compile(selectPattern, Pattern.MULTILINE);
                 Matcher matcher = pattern.matcher(statement);
 
-
                 SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
-                
+
                 // remove all line feed characters and leading spaces
                 statement = statement.replaceAll("[\r\n]", "").trim();
 //                // remember the current table, in order to determine order-by statement
 //                currentTable = statement.replaceFirst(getMatchPattern(), "${table}").replaceFirst( "(.*)\\s+as\\s+.*", "$1" ).trim();
                 // do the actual replacement
                 String replacement = statement.replaceFirst(selectPattern, replaceBy);
-                // format 
+                // format
                 String newStatement = formatter.format("", replacement, "select");
-                 
-                
+
                 replacement = replacement.replaceAll(" \\.", ".");
 //                String controlString = outString.replaceFirst(selectPattern, "|$7|");
 //                System.out.println(controlString);
 
                 String breaks = replacement.replaceFirst(selectPattern, "$1");
 
-                System.out.println();                
-                System.out.println("Parts of Select Statement:" );
+                System.out.println();
+                System.out.println("Parts of Select Statement:");
                 for (int i = 1; i < 12; i++) {
                     System.out.println("" + i + "  |" + statement.replaceFirst(selectPattern, "$" + i) + "|");
                 }
                 System.out.println("--------------------------------------------------------------------");
-                System.out.println();                
+                System.out.println();
 
                 System.out.println("Matcher matches: " + matcher.matches());
                 System.out.println("Matcher find:    " + matcher.find());
 
                 System.out.println("--------------------------------------------------------------------");
-                System.out.println();                
+                System.out.println();
 
                 System.out.println("Current Statement:  |" + replacement + "|");
                 System.out.println("Expected Statement: |" + results.get(path) + "|");
 
                 System.out.println("--------------------------------------------------------------------");
-                System.out.println("Current Statement (formatted):");                
+                System.out.println("Current Statement (formatted):");
 
-                
                 System.out.println(newStatement.toString());
 
                 System.out.println("--------------------------------------------------------------------");
-                System.out.println("Expected Statement (indentation and line breaks):");                                
+                System.out.println("Expected Statement (indentation and line breaks):");
 //                String rb = formatter.format("",results.get(path), "select");
                 String rb = results.get(path);
                 System.out.println(rb.toString());
@@ -182,19 +183,17 @@ class SelectSingle {
 //                  }
 //                System.out.println("--------------------------------------------------------------------");
 ////////////////////////////////////////
-                
+
                 assertEquals(newStatement.toString(), rb.toString());
 
                 // assertEquals(actString, results.get(path) + "\n");
                 // "select * from wbit into @data(result) up to 1 rows where tkonn eq @tkonn and
                 // tposn = @tposn. endselect\n");
 
-            
                 ////////////////////////////////////////////////
-                
+
                 String replacement2021 = statement.replaceFirst(selectPattern, replaceByModern);
 
-            
                 System.out.println();
                 System.out.println("--------------------------------------------------------------------");
                 System.out.println("Testing newest style (2021): " + path);
@@ -202,26 +201,24 @@ class SelectSingle {
                 System.out.println("actString 2021 |" + replacement2021 + "|");
                 System.out.println("expString 2021 |" + newStyles.get(path) + "\n|");
 
-                
                 String sb2 = formatter.format("", replacement2021, "select");
                 System.out.println("Current Statement (2021)");
                 System.out.println(sb2.toString());
 
-               // String rb2 = formatter.format("", newStyles.get(path), "select");
+                // String rb2 = formatter.format("", newStyles.get(path), "select");
                 String rb2 = newStyles.get(path);
                 System.out.println("Expected Statement (2021)");
                 System.out.println(rb2.toString());
-                
+
                 assertEquals(sb2.toString(), rb2.toString());
 
-            
             }
 
             for (String file : dir.list()) {
-                if (file.equals( "attic" ) ) {
+                if (file.equals("attic")) {
                     continue;
                 }
-                if ( ! file.startsWith("result-") && ! file.startsWith("2021-")) {
+                if (!file.startsWith("result-") && !file.startsWith("2021-")) {
                     String textFilePath = dir.getPath() + File.separator + file;
                     System.out.println(textFilePath);
                 }
@@ -232,7 +229,7 @@ class SelectSingle {
 
     }
 
-	private String readTextFile(String path) throws FileNotFoundException {
+    private String readTextFile(String path) throws FileNotFoundException {
         String outString;
         Scanner in = new Scanner(new FileReader(path));
         StringBuilder sb = new StringBuilder();
@@ -262,18 +259,16 @@ class SelectSingle {
         sb = new StringBuilder();
         for (String str : strings) {
             String s = str.toLowerCase();
-            if (s.startsWith("from") || s.startsWith("into") || s.startsWith("up") || s.startsWith("where")  || s.startsWith("fields")  ) {
-              sb.append("  ");
-            } else if ( s.startsWith("and") ) {
+            if (s.startsWith("from") || s.startsWith("into") || s.startsWith("up") || s.startsWith("where")
+                    || s.startsWith("fields")) {
+                sb.append("  ");
+            } else if (s.startsWith("and")) {
                 sb.append("    ");
-            } else if ( s.startsWith("or") ) {
+            } else if (s.startsWith("or")) {
                 sb.append("     ");
             }
-            sb.append(str
-                    .replaceFirst("(?i)(into)(corresponding)(fields)(of)(table) ", "$1 $2 $3 $4 $5 " ) 
-                    .replaceFirst("(?i)(into)(corresponding)(fields)(of) ", "$1 $2 $3 $4 " )
-                    .trim()
-                    );
+            sb.append(str.replaceFirst("(?i)(into)(corresponding)(fields)(of)(table) ", "$1 $2 $3 $4 $5 ")
+                    .replaceFirst("(?i)(into)(corresponding)(fields)(of) ", "$1 $2 $3 $4 ").trim());
             sb.append("\n");
         }
         return sb.toString().trim();

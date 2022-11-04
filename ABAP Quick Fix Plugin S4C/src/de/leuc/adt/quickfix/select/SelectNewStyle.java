@@ -36,10 +36,8 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 //                    + "\\s+(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)"
 //                    + "\\s+(?<where>where)\\s+(?<condition>.*)?";
     // pattern allows different orders of into, from, where
-    private static final String selectPattern = 
-            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+"
-            + "(?:(?:(?<from>from)\\s+(?<table>.*))"
-            + "|(?:(?<into>into)(?<variable>.*))"
+    private static final String selectPattern = "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+"
+            + "(?:(?:(?<from>from)\\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
             + "|(?:(?<where>where)\\s+(?<condition>.*)?)){3}";
 
     public static final String modernTargetSelectPattern = "${select} ${from} ${table} fields ${fields} ${where} ${condition}"

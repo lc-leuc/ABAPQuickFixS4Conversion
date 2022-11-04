@@ -54,7 +54,7 @@ public class OrderByPrefParser {
     }
 
     public static String getOrderBy(String table) {
-        if (map == null) {
+        if ( map == null || map.isEmpty() ) {
             getUserEntries();
         }
         if (map.containsKey(table)) {

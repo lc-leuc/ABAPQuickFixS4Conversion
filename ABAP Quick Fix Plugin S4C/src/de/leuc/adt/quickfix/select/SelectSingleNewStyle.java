@@ -41,11 +41,10 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 //            + "\\s+(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)"
 //            + "\\s+(?<where>where)\\s+(?<condition>.*)?";
     // pattern allows different orders of into, from, where
-    private static final String selectPattern =              //    vvvvvvvvvvvvvvvvvvvvv 
+    private static final String selectPattern = // vvvvvvvvvvvvvvvvvvvvv
             "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<single>single)\\s+(?<fields>.*)\\s+"
-            + "(?:(?:(?<from>from)\\s+(?<table>.*))"
-            + "|(?:(?<into>into)(?<variable>.*))"
-            + "|(?:(?<where>where)\\s+(?<condition>.*)?)){3}";
+                    + "(?:(?:(?<from>from)\\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
+                    + "|(?:(?<where>where)\\s+(?<condition>.*)?)){3}";
     private static final String modernTargetSelectPattern = "${select} ${single} ${from} ${table} fields ${fields} ${where} ${condition}"
             + " ${into} ${variable}";
 
@@ -143,8 +142,10 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         if (currentStatement.contains(("@"))) {
             return false;
         }
-        if (Pattern.compile(getMatchPattern()).matcher(currentStatement.replaceAll("[\r\n]", "").trim()).find()) {// && !(new MoveExact().canAssist()))
-                                                                                  // {
+        if (Pattern.compile(getMatchPattern()).matcher(currentStatement.replaceAll("[\r\n]", "").trim()).find()) {// &&
+                                                                                                                  // !(new
+                                                                                                                  // MoveExact().canAssist()))
+            // {
             // table name to decide on order by clause
 
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
