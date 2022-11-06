@@ -25,15 +25,14 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 ### Changes
 
-#### 1.3.4
+#### 1.4.0
 
+* Switched to execution environment Java 17.
+* Adapt to upstream changes (build 20221025).
 * Allow various orders of clauses: into ..., where ..., from ...
 * Fix and improve formatting and conversion to new styles.
 * Re-init default order by list preferences.
-
-#### 1.2.2
-
-* Respects upper case key words.
+* Do not process statements containing join.
 
 #### 1.3.3
 
@@ -41,3 +40,8 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 * Allow _into table_ for _new syle_ fixes.
 * Include initialization button for _order by_ lists in preferences.
 * Fix issues with replacements and formatting.
+
+#### 1.2.2
+
+* Respects upper case key words.
+
