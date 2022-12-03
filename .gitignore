@@ -4,5 +4,7 @@ features
 plugins
 site.xml
 *.zip
+*.aut
+*.bak
 attic
-
+/Presentation
