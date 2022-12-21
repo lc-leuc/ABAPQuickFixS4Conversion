@@ -2,6 +2,17 @@ package de.leuc.adt.quickfix.select;
 
 import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
 
+/**
+ * Formatter for select statements.
+ * <ul>
+ * <li>includes arobase (@)</li>
+ * <li>includes commas in lists</li>
+ * <li>reformats the statement in lines with indentation</li>
+ * </ul>
+ * 
+ * @author lc
+ *
+ */
 public class SelectFormat {
 
     private static final String secondLevelOr = "     ";
@@ -9,14 +20,34 @@ public class SelectFormat {
     private static final String firstLevel = "  ";
     private boolean lowercase = true;
 
+    /**
+     * Determine the preferred case (upper or lower) of letters.
+     * This is important for introduced elements, such as <code>up to 1 rows</code>. 
+     * 
+     * Guessing by case of select statement: <code>new SelectFormat(statement.contains("select"))</code>
+     * 
+     * @param lowercase - true if lower case
+     */
     public SelectFormat(boolean lowercase) {
         this.lowercase = lowercase;
     }
 
+    /**
+     * Prefered case.
+     * @return - true if lower case is set
+     */
     public boolean getLowerCase() {
         return lowercase;
     }
 
+    /**
+     * Splits a select statement into an array of the components.
+     * 
+     * Also concatenates <code>into corresponding fields of</code> to one word.
+     * 
+     * @param in - select statement
+     * @return - list of components
+     */
     public String[] split(String in) {
         String[] r = new String[] {};
 //        String from = "(?i)(?=from )";
@@ -24,13 +55,26 @@ public class SelectFormat {
         in = in.replaceFirst("(?i)(into) (corresponding) (fields) (of) (table)", "$1$2$3$4$5");
         in = in.replaceFirst("(?i)(into) (corresponding) (fields) (of)", "$1$2$3$4");
 
-        r = in.split("(?i)(?=from )" + "|(?=as )" + "|(?=intocorrespondingfieldsoftable )"
+        r = in.split("(?i)(?=from )" //+ "|(?= as )" 
+                + "|(?=intocorrespondingfieldsoftable )"
                 + "|(?=intocorrespondingfieldsof )" + "|(?=into )" + "|(?=up\sto )" + "|(?=where )" + "|(?=and )"
                 + "|(?=or )" + "|(?=endselect)" + "|(?=order\sby )" + "|(?=group\sby )" + "|(?=fields )" + "|(?=join )");
         return r;
     }
 
+    /**
+     * Formats a select statement with a given indentation by 
+     * splitting into lines and formatting each line.
+     * 
+     * @param originalIndentation - indentation
+     * @param replacement - select statement to be formatted
+     * @param startWith - <code>select</code> or <code>select single</code>
+     * @return - formatted statement
+     */
     public String format(String originalIndentation, String replacement, String startWith) {
+        //fallback
+        if (! ("select".equals(startWith) || "select single".equals(startWith)) ) {startWith = "select";}
+
         String[] s = split(replacement.replaceAll("\s\s*", " ")); // remove multiple spaces
         String newStatement = "";
         for (String line : s) {
@@ -39,6 +83,15 @@ public class SelectFormat {
         return newStatement.replaceAll("\s+\\.", ".");
     }
 
+    /**
+     * Every line is formatted and augmented with indentation according to 
+     * its function.
+     * 
+     * @param input - input string, single line
+     * @param originalIndentation - indentation (prefix)
+     * @param start - <code>select</code> or <code>select single</code>
+     * @return - formatted line
+     */
     public String formatLine(String input, String originalIndentation, String start) {
 
         // String in = input.toLowerCase();
@@ -51,11 +104,10 @@ public class SelectFormat {
             if (selection.contains(" ") && !selection.contains(",")) {
                 in = transformCase(start).concat(" ".concat(selection.replaceAll("\s+", ", ")));
             }
-            return in.trim();
-//            return indentation + in.trim();
+            return indentation + in.trim();
         } else if (in2.startsWith("from ")) {
             String table = in.replaceFirst("(?i)from\s+(.*)", "$1").trim();
-            in = handleInLineComment(transformCase("from ").concat(table.replaceAll("\s+", ", ")));
+            in = handleInLineComment(transformCase("from ").concat(table));//.replaceAll("\s+", ", ")));
             return originalIndentation + firstLevel + in.trim();
         } else if (in2.startsWith("as ")) {
             return " " + in.trim();

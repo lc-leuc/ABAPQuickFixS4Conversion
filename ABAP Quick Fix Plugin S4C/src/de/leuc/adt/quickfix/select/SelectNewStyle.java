@@ -16,6 +16,12 @@ import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 import de.leuc.adt.quickfix.Activator;
 import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
+/**
+ * QuickFix: Applies new formatting rules to select statement.
+ * 
+ * @author lc
+ *
+ */
 public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex {
 
     /**
@@ -30,15 +36,9 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
      * <li>where statement
      * </ul>
      */
-//    private static final String selectPattern =
-//            // dot is not part of the statement
-//            // select single * from wbhk into @data(result) where tkonn = ''
-//            "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)"
-//                    + "\\s+(?<from>from)\\s+(?<table>.*)"
-//                    + "\\s+(?<into>into)(?<corresponding>[ corresponding fields of]?)\\s+(?<variable>.*)"
-//                    + "\\s+(?<where>where)\\s+(?<condition>.*)?";
+
     // pattern allows different orders of into, from, where
-    private static final String selectPattern = "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+"
+    public static final String selectPattern = "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+"
             + "(?:(?:(?<from>from)\\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
             + "|(?:(?<where>where)\\s+(?<condition>.*)?)){3}";
 
@@ -89,9 +89,10 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         // we need to remember the indentation -- remove everything until the last line
         String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
         String originalIndentation = leading.replaceAll(".*[\r\n]", "");
-
+        leading = leading.substring(0,leading.length() - originalIndentation.length());
+        
         // if preferences are set: produce a commented version of the original text
-        String comentedOut = getCommentedOutStatement(statement, originalIndentation);
+        String comentedOut = StatementUtil.getCommentedOutStatement(statement, originalIndentation);
 
         // format
         String newStatement = formatter.format(originalIndentation, statementOneLine, "select");
@@ -99,16 +100,10 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         // concatenate leading lines with automatic comment (if set in prefs)
         // as well as original statement (as comment, if set in prefs) and the new
         // statement
-        return leading.concat(getCommentPrefix()).concat(comentedOut).concat(newStatement);
+        String prefix =  StatementUtil.getCommentPrefix(originalIndentation);
 
-    }
+        return leading.concat(prefix.concat(comentedOut).concat(newStatement));
 
-    private String getCommentedOutStatement(String in, String indent) {
-        if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
-            in = in.replaceFirst("(?i)(?s)([\n\r]*)(\s*select.*)", "*" + indent + "$2");
-            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat(".\n".concat(indent));
-        }
-        return "";
     }
 
     @Override
@@ -145,7 +140,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
             indent_number = store.getInt(PreferenceConstants.INDENT);
-            System.out.println("local preferences are: " + comments + " " + indent_number);
+            //System.out.println("local preferences are: " + comments + " " + indent_number);
 
             return true;
         }
@@ -172,14 +167,6 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
     public String getReplacePattern() {
         return modernTargetSelectPattern;
 
-    }
-
-    private String getCommentPrefix() {
-        if (comments) {
-            String comment = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.COMMENT_TEXT);
-            return comment.replace("${DATE}", java.time.LocalDateTime.now().toString()).concat("\n");
-        }
-        return "";
     }
 
 }

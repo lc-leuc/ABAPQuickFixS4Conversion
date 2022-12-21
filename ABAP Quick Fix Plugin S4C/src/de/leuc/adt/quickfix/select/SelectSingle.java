@@ -1,11 +1,9 @@
 package de.leuc.adt.quickfix.select;
 
-import java.util.List;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
@@ -13,12 +11,21 @@ import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapCodeReader;
 import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
 import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
-import com.sap.adt.tools.abapsource.ui.sources.IAbapSourceScannerServices.Token;
 
 import de.leuc.adt.quickfix.Activator;
 import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
 import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
+/**
+ * QuickFix: Replaces a select single statement with a select statement 
+ * with <code>up to 1 rows</code> and <code>order-by</code> statement.
+ * 
+ * If a oder-by sequence is provided for a given table in the preferences, 
+ * then the sequence is used, otherwise <code>primary key</code>.
+ * 
+ * @author lc
+ *
+ */
 public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     private static final String ORDER_BY_PRIMARY_KEY = " order by primary key";
@@ -41,13 +48,6 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
      */
 
     // dot is not part of the statement
-//    public static final String selectPattern =
-//            // select single * from wbhk into @data(result) where tkonn = ''
-//                    "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)" 
-//                    + "\\s+(?<single>single)\\s+(?<fields>.*)"
-//                    + "\\s+(?<from>from)\\s+(?<table>.*)"
-//                    + "\\s+(?<into>into)\\s+(?<variable>.*)"
-//                    + "\\s+(?<where>where)\\s+(?<condition>.*)";
     // allowing for different sort orders of into, from and where
     public static final String selectPattern = "(?i)"
             // + "(?<breaks>[\n\r]*)(?<spaces>\s*)"
@@ -63,7 +63,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     /**
      * already contains line break
      */
-    private boolean comments = false;
+    // private boolean comments = false;
     private int indent_number = 2;
 
     public SelectSingle() {
@@ -81,7 +81,6 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     @SuppressWarnings("restriction")
     @Override
     public String getChangedCode() {
-//    	 String code = CodeReader.getCode();
 
         AbapStatement currentStatement = CodeReader.CurrentStatement;
         String statement = currentStatement.getStatement();
@@ -95,12 +94,14 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         // remove all line feed characters and leading spaces
         String statementOneLine = statement.replaceAll("[\r\n]", "").trim();
 
-        System.out.println("-----------------------------");
-        System.out.println("begin st     " + beginOfStatement);
-        System.out.println("begin rep    " + beginOfStatementReplacement);
-        System.out.println("begin start  " + getStartOfReplace());
-        System.out.println("begin length " + getReplaceLength());
-        display_statement_all(statement);
+////        Debugging
+//        System.out.println("-----------------------------");
+//        System.out.println("begin st     " + beginOfStatement);
+//        System.out.println("begin rep    " + beginOfStatementReplacement);
+//        System.out.println("begin start  " + getStartOfReplace());
+//        System.out.println("begin length " + getReplaceLength());
+//        StatementUtil.display_statement_all(statement);
+
         // remember the current table, in order to determine order-by statement
         currentTable = statementOneLine.replaceFirst(getMatchPattern(), "${table}").replaceFirst("(.*)\s+as\s+.*", "$1")
                 .trim();
@@ -111,9 +112,13 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         // we need to remember the indentation -- remove everything until the last line
         String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
         String originalIndentation = leading.replaceAll(".*[\r\n]", "");
+        leading = leading.substring(0, leading.length() - originalIndentation.length());
+
+        // self-defined prefix
+        String prefix = StatementUtil.getCommentPrefix(originalIndentation);
 
         // if preferences are set: produce a commented version of the original text
-        String comentedOut = getCommentedOutStatement(statement, originalIndentation);
+        String comentedOut = StatementUtil.getCommentedOutStatement(statement, originalIndentation);
 
         // format
         String newStatement = formatter.format(originalIndentation, replacement, "select");
@@ -121,33 +126,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         // concatenate leading lines with automatic comment (if set in prefs)
         // as well as original statement (as comment, if set in prefs) and the new
         // statement
-        return leading.concat(getCommentPrefix().concat(comentedOut).concat(newStatement));
-    }
-
-    private void display_statement_all(String statement) {
-        display_statement_single(statement, "select");
-        display_statement_single(statement, "single");
-        display_statement_single(statement, "fields");
-        display_statement_single(statement, "from");
-        display_statement_single(statement, "table");
-        display_statement_single(statement, "into");
-        display_statement_single(statement, "variable");
-        display_statement_single(statement, "where");
-        display_statement_single(statement, "condition");
-
-    }
-
-    private void display_statement_single(String s, String n) {
-        System.out.println(n + ": " + s.replaceFirst(getMatchPattern(), "${" + n + "}"));
-
-    }
-
-    private String getCommentedOutStatement(String in, String indent) {
-        if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
-            in = in.replaceFirst("(?i)(?s)([\n\r]*)(\s*select.*)", "*" + indent + "$2");
-            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat(".\n".concat(indent));
-        }
-        return "";
+        return leading.concat(prefix.concat(comentedOut).concat(newStatement));
     }
 
     @Override
@@ -234,14 +213,6 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         temp.append(" " + endPattern);
         return temp.toString();
 
-    }
-
-    private String getCommentPrefix() {
-        if (comments) {
-            String comment = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.COMMENT_TEXT);
-            return comment.replace("${DATE}", java.time.LocalDateTime.now().toString()).concat("\n");
-        }
-        return "";
     }
 
 }
