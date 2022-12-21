@@ -25,6 +25,12 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 ### Changes
 
+#### 1.4.1
+
+* Fix indentation problems with comments.
+* Code Cleanup, javadoc.
+* Refactored unit tests.
+
 #### 1.4.0
 
 * Switched to execution environment Java 17.
