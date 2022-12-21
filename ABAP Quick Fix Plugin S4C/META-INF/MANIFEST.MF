@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ABAP Quick Fix S4C Plugin
 Bundle-SymbolicName: de.leuc.adt.quickfix;singleton:=true
-Bundle-Version: 1.4.0.qualifier
+Bundle-Version: 1.4.1.qualifier
 Bundle-Activator: de.leuc.adt.quickfix.Activator
 Bundle-Vendor: leuc.de
 Require-Bundle: org.eclipse.ui,
