@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ABAP Quick Fix S4C Plugin
 Bundle-SymbolicName: de.leuc.adt.quickfix;singleton:=true
-Bundle-Version: 1.4.1.qualifier
+Bundle-Version: 1.4.2.qualifier
 Bundle-Activator: de.leuc.adt.quickfix.Activator
 Bundle-Vendor: leuc.de
 Require-Bundle: org.eclipse.ui,
@@ -13,14 +13,9 @@ Require-Bundle: org.eclipse.ui,
  com.sap.adt.tools.abapsource.ui,
  com.sap.adt.util.ui,
  org.eclipse.ui.ide,
- org.eclipse.e4.core.di;bundle-version="1.7.800",
- com.abapblog.adt.quickfix;bundle-version="1.1.0",
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.jdt.ui,
- org.eclipse.ui.forms;bundle-version="3.11.0",
- org.eclipse.wst.json.core,
- org.eclipse.wst.json.schemaprocessor,
- org.eclipse.wst.json.ui;bundle-version="1.0.600"
+ com.abapblog.adt.quickfix;bundle-version="1.1.4"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: de.leuc.adt.quickfix
 Bundle-ActivationPolicy: lazy
@@ -29,5 +24,4 @@ Import-Package: com.sap.adt.atc.model.autoquickfix,
  com.sap.adt.refactoring.model.quickfixes,
  com.sap.adt.refactoring.quickfix,
  com.sap.adt.tools.core.ui.contentassist,
- org.eclipse.core.resources,
- org.eclipse.ui.forms.widgets
+ org.eclipse.core.resources

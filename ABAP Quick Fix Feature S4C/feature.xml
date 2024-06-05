@@ -2,7 +2,7 @@
 <feature
       id="de.leuc.adt.quickfix"
       label="ABAP QuickFix S4C"
-      version="1.4.1.qualifier"
+      version="1.4.2.qualifier"
       provider-name="leuc.de">
 
    <description url="https://abapblog.com">
@@ -69,9 +69,6 @@ END OF TERMS AND CONDITIONS
 
    <plugin
          id="de.leuc.adt.quickfix"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
 </feature>

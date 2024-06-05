@@ -53,8 +53,7 @@ class SelectSingle extends AbstractTest {
 
     // we are testing without order by clause, i.e. an additional end of statement
     // (dot) is necessary
-    private static final String targetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternStart
-            + ".";
+    private static final String targetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternStart;
 
     private static final String targetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternEnd;
     private static final String modernTargetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternStart;
@@ -73,7 +72,7 @@ class SelectSingle extends AbstractTest {
 
     @Test
     void replace() {
-        replace_internal(TEST_FOLDER, new de.leuc.adt.quickfix.select.SelectSingle());
+        replace_internal(TEST_FOLDER, new de.leuc.adt.quickfix.select.SelectSingle( ));
     }
 
 }

@@ -1,0 +1,5 @@
+    SELECT SINGLE * FROM ztnapr "" something else
+      INTO CORRESPONDING FIELDS OF @output_params"" something2
+      WHERE kschl = @configuration-kschl  "something 3
+        AND nacha = @configuration-nacha
+        AND kappl = @configuration-kappl

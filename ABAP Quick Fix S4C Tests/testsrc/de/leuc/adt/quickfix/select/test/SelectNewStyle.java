@@ -76,7 +76,7 @@ class SelectNewStyle extends AbstractTest{
 
     @Test
     void replace() {
-        replace_internal(TEST_FOLDER, new de.leuc.adt.quickfix.select.SelectNewStyle());
+        replace_internal(TEST_FOLDER, new de.leuc.adt.quickfix.select.SelectNewStyle( true ));
     }
     
 

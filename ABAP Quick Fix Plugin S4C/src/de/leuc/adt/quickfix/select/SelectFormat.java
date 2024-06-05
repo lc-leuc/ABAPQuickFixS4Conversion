@@ -21,10 +21,11 @@ public class SelectFormat {
     private boolean lowercase = true;
 
     /**
-     * Determine the preferred case (upper or lower) of letters.
-     * This is important for introduced elements, such as <code>up to 1 rows</code>. 
+     * Determine the preferred case (upper or lower) of letters. This is important
+     * for introduced elements, such as <code>up to 1 rows</code>.
      * 
-     * Guessing by case of select statement: <code>new SelectFormat(statement.contains("select"))</code>
+     * Guessing by case of select statement:
+     * <code>new SelectFormat(statement.contains("select"))</code>
      * 
      * @param lowercase - true if lower case
      */
@@ -34,6 +35,7 @@ public class SelectFormat {
 
     /**
      * Prefered case.
+     * 
      * @return - true if lower case is set
      */
     public boolean getLowerCase() {
@@ -55,25 +57,28 @@ public class SelectFormat {
         in = in.replaceFirst("(?i)(into) (corresponding) (fields) (of) (table)", "$1$2$3$4$5");
         in = in.replaceFirst("(?i)(into) (corresponding) (fields) (of)", "$1$2$3$4");
 
-        r = in.split("(?i)(?=from )" //+ "|(?= as )" 
-                + "|(?=intocorrespondingfieldsoftable )"
-                + "|(?=intocorrespondingfieldsof )" + "|(?=into )" + "|(?=up\sto )" + "|(?=where )" + "|(?=and )"
-                + "|(?=or )" + "|(?=endselect)" + "|(?=order\sby )" + "|(?=group\sby )" + "|(?=fields )" + "|(?=join )");
+        r = in.split("(?i)(?=\sfrom\s)" // + "|(?= as )"
+                + "|(?=intocorrespondingfieldsoftable\s)|(?=intocorrespondingfieldsof\s)"
+                + "|(?=\sinto\s)|(?=\sup\sto\s)|(?=\swhere\s)|(?=\sand\s)"
+                + "|(?=\sor\s)|(?=\sendselect)|(?=\sorder\sby\s)|(?=\sgroup\sby\s)|(?=\sfields\s)|(?=\sjoin\s)");
         return r;
     }
 
     /**
-     * Formats a select statement with a given indentation by 
-     * splitting into lines and formatting each line.
+     * Formats a select statement with a given indentation by splitting into lines
+     * and formatting each line.
      * 
      * @param originalIndentation - indentation
-     * @param replacement - select statement to be formatted
-     * @param startWith - <code>select</code> or <code>select single</code>
+     * @param replacement         - select statement to be formatted
+     * @param startWith           - <code>select</code> or
+     *                            <code>select single</code>
      * @return - formatted statement
      */
     public String format(String originalIndentation, String replacement, String startWith) {
-        //fallback
-        if (! ("select".equals(startWith) || "select single".equals(startWith)) ) {startWith = "select";}
+        // fallback
+        if (!("select".equals(startWith) || "select single".equals(startWith))) {
+            startWith = "select";
+        }
 
         String[] s = split(replacement.replaceAll("\s\s*", " ")); // remove multiple spaces
         String newStatement = "";
@@ -84,12 +89,13 @@ public class SelectFormat {
     }
 
     /**
-     * Every line is formatted and augmented with indentation according to 
-     * its function.
+     * Every line is formatted and augmented with indentation according to its
+     * function.
      * 
-     * @param input - input string, single line
+     * @param input               - input string, single line
      * @param originalIndentation - indentation (prefix)
-     * @param start - <code>select</code> or <code>select single</code>
+     * @param start               - <code>select</code> or
+     *                            <code>select single</code>
      * @return - formatted line
      */
     public String formatLine(String input, String originalIndentation, String start) {
@@ -98,23 +104,29 @@ public class SelectFormat {
         String indentation = originalIndentation;
         originalIndentation = "\n" + originalIndentation;
         String in = input;
-        String in2 = input.toLowerCase();
+        String in2 = input.toLowerCase().trim();
         if (in2.startsWith(start)) {
-            String selection = in.replaceFirst("(?i)" + start + "\s+(.*)", "$1").trim();
-            if (selection.contains(" ") && !selection.contains(",")) {
-                in = transformCase(start).concat(" ".concat(selection.replaceAll("\s+", ", ")));
+            if (!in2.equals(start)) {
+                String selection = in.replaceFirst("(?i)" + start + "\s+(.*)", "$1").trim();
+                if (selection.contains(" ") && !selection.contains(",")) {
+                    // prevent commas around 'as', 'distinct' and functions/'(' - negative look
+                    // behind and negative look ahead
+                    in = transformCase(start)
+                            .concat(" ".concat(selection.replaceAll("(?<!,| as|\\(| distinct)\\s+(?!as |\\))", ", ")));
+                }
             }
             return indentation + in.trim();
         } else if (in2.startsWith("from ")) {
             String table = in.replaceFirst("(?i)from\s+(.*)", "$1").trim();
-            in = handleInLineComment(transformCase("from ").concat(table));//.replaceAll("\s+", ", ")));
+            in = handleInLineComment(transformCase("from ").concat(table));
             return originalIndentation + firstLevel + in.trim();
         } else if (in2.startsWith("as ")) {
             return " " + in.trim();
         } else if (in2.startsWith("fields ")) {
             String fields = in.replaceFirst("(?i)fields\s+(.*)", "$1").trim();
-            // if (fields.contains(" ") && !fields.contains(",")) {
-            in = transformCase("fields ").concat(fields.replaceAll("(?<!,)\s+", ", "));// ("\s+", ", "));
+            // prevent commas around 'as', 'distinct' and functions/'(' - negative look
+            // behind and negative look ahead
+            in = transformCase("fields ").concat(fields.replaceAll("(?<!,| as|\\(| distinct)\\s+(?!as |\\))", ", "));
             // }
             return originalIndentation + firstLevel + in.trim();
         } else if (in2.startsWith("where ")) {
@@ -131,7 +143,9 @@ public class SelectFormat {
             temp3 = temp3.replaceFirst("(?i)(into)(corresponding)(fields)(of) ", "$1 $2 $3 $4 ").trim();
             return originalIndentation + firstLevel + temp3;
         } else if (in2.startsWith("into ")) {
-            return originalIndentation + firstLevel + adaptInto(in).trim();
+            return originalIndentation + firstLevel + adaptInto(in2).trim();
+        } else if (in2.startsWith("group by ")) {
+            return originalIndentation + firstLevel + in2.trim();
         } else if (in2.startsWith("order by primary key")) {
             return originalIndentation + firstLevel + transformCase(in).trim();
         } else if (in2.startsWith("order by ")) {
@@ -139,7 +153,7 @@ public class SelectFormat {
             return originalIndentation + firstLevel + transformCase("order by ").concat(orderByList).trim();
         } else if (in2.startsWith("endselect")) {
             // no additional line break
-            return originalIndentation + transformCase(in).trim();
+            return originalIndentation + transformCase(in2).trim();
         } else {
             return originalIndentation + firstLevel + transformCase(in).trim();
         }
@@ -173,7 +187,7 @@ public class SelectFormat {
         String temp = in.replaceFirst("(?i)(" + keyWord + ")\s+(.*)", "$2");
 
         // replace into (tkonn, tposn) with into (@tkonn, @tposn)
-        String temp2 = prefix.concat(temp.replaceAll("(^\\(|^|[ ,])([<a-zA-Z0-9_])", "$1@$2"));
+        String temp2 = transformCase(prefix).concat(temp.replaceAll("(^\\(|^|[ ,])([<a-zA-Z0-9_])", "$1@$2"));
         return temp2;
     }
 

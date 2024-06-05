@@ -1,0 +1,4 @@
+ select single vbeln count( distinct venum ) as venum count( distinct vepos ) as vepos from zvepo
+        into corresponding fields of result1
+        where vbeln = vbeln
+        group by vbeln

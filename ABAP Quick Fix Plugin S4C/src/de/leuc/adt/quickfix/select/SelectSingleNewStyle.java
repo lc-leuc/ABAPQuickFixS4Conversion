@@ -17,8 +17,8 @@ import de.leuc.adt.quickfix.Activator;
 import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
 /**
-* QuickFix: Applies new formatting rules to select statement.
-* 
+ * QuickFix: Applies new formatting rules to select statement.
+ * 
  * @author lc
  *
  */
@@ -42,7 +42,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
      */
 
     // dot is not part of the statement
-    // pattern allows different orders of into, from, where
+    // pattern allows various orders of into, from, where
     private static final String selectPattern = // vvvvvvvvvvvvvvvvvvvvv
             "(?i)(?<breaks>[\n\r]*)(?<spaces>\s*)(?<select>select)\s+(?<single>single)\s+(?<fields>.*)\s+"
                     + "(?:(?:(?<from>from)\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
@@ -66,7 +66,6 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
                 true);
         int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
 
-        // System.out.println("preferences are: " + bool + tabsno);
     }
 
     @Override
@@ -94,22 +93,21 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         // we need to remember the indentation -- remove everything until the last line
         String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
         String originalIndentation = leading.replaceAll(".*[\r\n]", "");
-        leading = leading.substring(0,leading.length() - originalIndentation.length());
-        
+        leading = leading.substring(0, leading.length() - originalIndentation.length());
+
         // if preferences are set: produce a commented version of the original text
         String comentedOut = StatementUtil.getCommentedOutStatement(statement, originalIndentation);
 
-        //   format 
+        // format
         String newStatement = formatter.format(originalIndentation, statementOneLine, "select single");
 
         // concatenate leading lines with automatic comment (if set in prefs)
         // as well as original statement (as comment, if set in prefs) and the new
         // statement
-        String prefix =  StatementUtil.getCommentPrefix(originalIndentation);
+        String prefix = StatementUtil.getCommentPrefix(originalIndentation);
 
         return leading.concat(prefix.concat(comentedOut).concat(newStatement));
     }
-
 
     @Override
     public String getAssistShortText() {
@@ -148,7 +146,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
             indent_number = store.getInt(PreferenceConstants.INDENT);
-            //System.out.println("preferences are: " + comments + " " + indent_number);
+            // System.out.println("preferences are: " + comments + " " + indent_number);
 
             return true;
         }

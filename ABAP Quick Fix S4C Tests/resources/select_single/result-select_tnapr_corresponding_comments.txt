@@ -1,0 +1,8 @@
+    SELECT *
+      FROM ztnapr "" something else
+      WHERE kschl = @configuration-kschl "something 3
+        AND nacha = @configuration-nacha
+        AND kappl = @configuration-kappl
+      INTO CORRESPONDING FIELDS OF @output_params"" @something2
+      UP TO 1 ROWS.
+    ENDSELECT

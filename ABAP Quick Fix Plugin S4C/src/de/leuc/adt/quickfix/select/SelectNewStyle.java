@@ -60,8 +60,9 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         Boolean bool = preferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
                 true);
         int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
-
-        // System.out.println("preferences are: " + bool + tabsno);
+    }
+    public SelectNewStyle( boolean debug ) {
+        super();
     }
 
     @Override

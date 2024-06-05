@@ -1,0 +1,7 @@
+ select vbeln, count( distinct venum ) as venum, count( distinct vepos ) as vepos
+   from zvepo
+   where vbeln = @vbeln
+   group by vbeln
+   into corresponding fields of @result1
+   up to 1 rows.
+ endselect

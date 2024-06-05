@@ -25,6 +25,14 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 ### Changes
 
+#### 1.4.2
+
+* Included recognition for _select single_ in new style (see #65).
+* Changed order of statements within _select_; now _where_ is always located after table (new and old style).
+* Handling of complex field lists using functions and aliases correctly.
+* Adaptations and minor fixes in formatter and tests.
+* Remove unnecessary string concatenation.
+
 #### 1.4.1
 
 * Fix indentation problems with comments.

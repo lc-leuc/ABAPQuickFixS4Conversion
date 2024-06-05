@@ -85,9 +85,22 @@ public abstract class AbstractTest {
     //                // remember the current table, in order to determine order-by statement
     //                currentTable = statement.replaceFirst(getMatchPattern(), "${table}").replaceFirst( "(.*)\\s+as\\s+.*", "$1" ).trim();
                     // do the actual replacement
+                    if ( statement.endsWith(".") ) { statement = statement.substring(0, statement.length() - 1 ); }
                     String replacement = getReplacement(statement, cut);
                     // format
                     String newStatement = formatter.format("", replacement, "select");
+                    if ( newStatement.startsWith("SELECT") && newStatement.endsWith(".endselect")) {
+                       newStatement = newStatement.replaceFirst("\\.endselect", ".\nENDSELECT");
+                    } 
+                    if ( newStatement.startsWith("select") && newStatement.endsWith(".ENDSELECT")) {
+                        newStatement = newStatement.replaceFirst("\\.ENDSELECT", ".\nendselect");                        
+                    }
+                    if ( newStatement.startsWith("select") && newStatement.endsWith(".endselect")) {
+                        newStatement = newStatement.replaceFirst("\\.endselect", ".\nendselect");
+                    }
+                    if ( newStatement.startsWith("SELECT") && newStatement.endsWith(".ENDSELECT")) {
+                        newStatement = newStatement.replaceFirst("\\.ENDSELECT", ".\nENDSELECT");
+                    }
     
                     replacement = replacement.replaceAll(" \\.", ".");
     //                String controlString = outString.replaceFirst(selectPattern, "|$7|");
@@ -110,7 +123,7 @@ public abstract class AbstractTest {
                     System.out.println();
     
                     System.out.println("Current Statement:  |" + replacement + "|");
-                    System.out.println("Expected Statement: |" + results.get(path) + "|");
+                    System.out.println("Expected Statement: |\n" + results.get(path) + "\n|");
     
                     System.out.println("--------------------------------------------------------------------");
                     System.out.println("Current Statement (formatted):");
@@ -119,30 +132,33 @@ public abstract class AbstractTest {
     
                     System.out.println("--------------------------------------------------------------------");
                     System.out.println("Expected Statement (indentation and line breaks):");
-    //                String rb = formatter.format("",results.get(path), "select");
-                    String rb = results.get(path);
+                    
+                    String result_text = results.get(path).replaceAll("\n", " ");
+                    String rb = formatter.format("",result_text, "select");
+//                    String rb = results.get(path);
+                    
                     System.out.println(rb.toString());
     
-    ///////////////////////////////////////// Differences
-    //                System.out.println("--------------------------------------------------------------------");
-    //                System.out.println("Diff statements: ");                                
-    //                System.out.println();
-    //                List<Diff> diffs = new DiffMatchPatch().diff_main(newStatement, rb);
-    //                //System.out.println(diffs);
-    //                diffs.forEach( new Consumer<Diff>() { 
-    //                    public void accept(Diff t) {
-    //                        System.out.println( t.operation  +"\n" + t.text  + "\n " + t.operation ); 
-    //                        } 
-    //                    } );
-    //                System.out.println("\n--------------------------------------------------------------------\n"
-    //                        + "Differences:");
-    //                for (Diff diff : diffs) {
-    //                    if (diff.operation == Operation.INSERT) {
-    //                      System.out.println(diff.text); 
-    //                    }
-    //                  }
-    //                System.out.println("--------------------------------------------------------------------");
-    ////////////////////////////////////////
+//    ///////////////////////////////////////// Differences
+//                    System.out.println("--------------------------------------------------------------------");
+//                    System.out.println("Diff statements: ");                                
+//                    System.out.println();
+//                    List<Diff> diffs = new DiffMatchPatch().diff_main(newStatement, rb);
+//                    //System.out.println(diffs);
+//                    diffs.forEach( new Consumer<Diff>() { 
+//                        public void accept(Diff t) {
+//                            System.out.println( t.operation  +"\n" + t.text  + "\n " + t.operation ); 
+//                            } 
+//                        } );
+//                    System.out.println("\n--------------------------------------------------------------------\n"
+//                            + "Differences:");
+//                    for (Diff diff : diffs) {
+//                        if (diff.operation == Operation.INSERT) {
+//                          System.out.println(diff.text); 
+//                        }
+//                      }
+//                    System.out.println("--------------------------------------------------------------------");
+//    ////////////////////////////////////////
     
                     assertEquals(newStatement.toString(), rb.toString());
     
@@ -151,12 +167,22 @@ public abstract class AbstractTest {
                     // tposn = @tposn. endselect\n");
     
                     ////////////////////////////////////////////////
-    
-                    String replacement2021 = getModernReplacement(statement, cut);
+                    String statementOneLine = statement.replaceAll("[\r\n]", "").trim();
+                    String oneLineNoCorresponding = statementOneLine.replaceFirst("(?i)corresponding fields", "");
+                    boolean original_in_modern_style = oneLineNoCorresponding.matches("(?im).*(?:(?:(?<from>\\sfrom\\s)(?<table>.*))(?:(?<fields>\\sfields\\s)(?<tle>.*)))");
+                    String replacement2021 = "";
+                    if ( original_in_modern_style ) {                        
+                        replacement2021 = statement.replaceFirst(
+                                "(?i)(?<select>select)\\s+(?<single>single)\\s+(?:(?:(?:(?<fieldskey>fields)(?<fields>.*))|(?:(?<from>from)(?<table>.*))){2}|(?:(?:(?<into>into)(?<variable>.*))|(?:(?<where>where)(?<condition>.*))){2}){2}",
+                                "${select} ${from} ${table} ${fieldskey} ${fields} ${where} ${condition} ${into} ${variable} up to 1 rows. endselect" );
+                    }else {
+                        replacement2021 = getModernReplacement(statement, cut);
+                    }
     
                     System.out.println();
                     System.out.println("--------------------------------------------------------------------");
                     System.out.println("Testing newest style (2021): " + path);
+                    System.out.println("Original already in newest style (2021): " + original_in_modern_style);
                     System.out.println("--------------------------------------------------------------------");
                     System.out.println("actString 2021 |" + replacement2021 + "|");
                     System.out.println("expString 2021 |" + newStyles.get(path) + "\n|");
@@ -165,32 +191,33 @@ public abstract class AbstractTest {
                     System.out.println("--------------------------------------------------------------------");
                     System.out.println("Current Statement (2021)");
                     System.out.println(sb2.toString());
-    
-                    // String rb2 = formatter.format("", newStyles.get(path), "select");
+                    
+//                    String result_text2 = newStyles.get(path).replaceAll("\n", " ");
+//                    String rb2 = formatter.format("", result_text2, "select");
                     String rb2 = newStyles.get(path);
                     System.out.println("--------------------------------------------------------------------");
                     System.out.println("Expected Statement (2021)");
                     System.out.println(rb2.toString());
     
-    ///////////////////////////////////////// Differences
-    //                System.out.println("--------------------------------------------------------------------");
-    //                System.out.println("Diff statements: ");                                
-    //                System.out.println();
-    //                List<Diff> diffs2 = new DiffMatchPatch().diff_main(sb2, rb2);
-    //                diffs2.forEach( new Consumer<Diff>() { 
-    //                public void accept(Diff t) {
-    //                  System.out.println( t.operation  +"\n" + t.text  + "\n " + t.operation ); 
-    //                  } 
-    //                } );
-    //                System.out.println("\n--------------------------------------------------------------------\n"
-    //                  + "Differences:");
-    //                for (Diff diff : diffs2) {
-    //                if (diff.operation == Operation.INSERT) {
-    //                System.out.println(diff.text); 
-    //                }
-    //                }
-    //                System.out.println("--------------------------------------------------------------------");
-    ////////////////////////////////////////
+//    ///////////////////////////////////////// Differences
+//                    System.out.println("--------------------------------------------------------------------");
+//                    System.out.println("Diff statements: ");                                
+//                    System.out.println();
+//                    List<Diff> diffs2 = new DiffMatchPatch().diff_main(sb2, rb2);
+//                    diffs2.forEach( new Consumer<Diff>() { 
+//                    public void accept(Diff t) {
+//                      System.out.println( t.operation  +"\n" + t.text  + "\n " + t.operation ); 
+//                      } 
+//                    } );
+//                    System.out.println("\n--------------------------------------------------------------------\n"
+//                      + "Differences:");
+//                    for (Diff diff : diffs2) {
+//                    if (diff.operation == Operation.INSERT) {
+//                    System.out.println(diff.text); 
+//                    }
+//                    }
+//                    System.out.println("--------------------------------------------------------------------");
+//    ////////////////////////////////////////
     
                     assertEquals(sb2.toString(), rb2.toString());
     
@@ -238,9 +265,9 @@ public abstract class AbstractTest {
         String[] strings = sf.split(sb.toString().trim());
         sb = new StringBuilder();
         for (String str : strings) {
-            String s = str.toLowerCase();
+            String s = str.toLowerCase().trim();
             if (s.startsWith("from") || s.startsWith("into") || s.startsWith("up") || s.startsWith("where")
-                    || s.startsWith("fields")) {
+                    || s.startsWith("fields") | s.startsWith("group by")) {
                 sb.append("  ");
             } else if (s.startsWith("and")) {
                 sb.append("    ");

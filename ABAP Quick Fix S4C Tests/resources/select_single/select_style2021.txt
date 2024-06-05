@@ -1,0 +1,6 @@
+SELECT SINGLE  FROM sflight
+ FIELDS *
+ WHERE carrid = 'AA'
+   AND connid = '0017'
+   AND fldate = '20240224'
+  INTO @data(sflight).
