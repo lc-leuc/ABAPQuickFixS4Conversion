@@ -134,6 +134,7 @@ public abstract class AbstractTest {
                     System.out.println("Expected Statement (indentation and line breaks):");
                     
                     String result_text = results.get(path).replaceAll("\n", " ");
+//                    String rb = result_text;
                     String rb = formatter.format("",result_text, "select");
 //                    String rb = results.get(path);
                     

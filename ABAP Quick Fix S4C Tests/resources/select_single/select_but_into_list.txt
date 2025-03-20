@@ -1,0 +1,3 @@
+    select single partner addrnumber nation from but020
+      into ( partner, addrnumber, nation )
+      where partner = zgs_but020-partner.

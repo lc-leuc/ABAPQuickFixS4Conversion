@@ -6,6 +6,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
+import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
 import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.move.MoveExact;
@@ -39,19 +40,22 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
 
     @Override
     public String getChangedCode() {
+        AbapStatement currentStatement = CodeReader.CurrentStatement;
         String temp2 = CodeReader.CurrentStatement.getStatement().replaceAll(" ", "");
         String leadingBreaks = temp2.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*)(move-corresponding)(.*)", "$1");
 
         String temp3 = CodeReader.CurrentStatement.replaceAllPattern("\r\n\\s*[\r\n]", ""); // remove first line feed
         // characters
-        String originalIndentation = temp3.replaceFirst("(?i)(?s)(\\s*)(move-corresponding)(.*)", "$1");
+        //String originalIndentation = temp3.replaceFirst("(?i)(?s)(\\s*)(move-corresponding)(.*)", "$1");
+        String originalIndentation = currentStatement.getLeadingCharacters().replaceAll("[\\s\\S]*[\\r\\n]", "");
+        ;
 
         String temp = CodeReader.CurrentStatement.replaceAllPattern("(.*)" + System.lineSeparator() + "(.*)", "$1$2");
         temp = temp.trim().replaceAll(" +", " ").trim().replaceAll("\\R+", ""); // condense spaces, remove line breaks
 
-        String comentedOut = getCommentedOutStatement(CodeReader.CurrentStatement.getStatement());
-        return leadingBreaks.concat(getCommentPrefix().concat(comentedOut)
-                .concat(originalIndentation.concat(temp.replaceFirst(getMatchPattern(), getReplacePattern()))));
+        String comentedOut = getCommentedOutStatement(originalIndentation.concat( CodeReader.CurrentStatement.getStatement()));
+        return getCommentPrefix().concat(comentedOut)
+                .concat(originalIndentation.concat(temp.replaceFirst(getMatchPattern(), getReplacePattern())));
     }
 
     private String getCommentedOutStatement(String in) {
@@ -71,7 +75,7 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
     @Override
     public String getAssistLongText() {
         // TODO Auto-generated method stub
-        return null;
+        return getChangedCode().replaceAll("\n", "<br/>");
     }
 
     private static Image icon;
@@ -104,7 +108,7 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
 
     @Override
     public int getStartOfReplace() {
-        return CodeReader.CurrentStatement.getBeginOfStatement();
+        return CodeReader.CurrentStatement.getBeginOfStatementReplacement();
     }
 
     @Override

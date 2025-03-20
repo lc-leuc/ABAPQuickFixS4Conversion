@@ -10,6 +10,7 @@ import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssist;
 import de.leuc.adt.quickfix.move.MoveCorresponding;
 import de.leuc.adt.quickfix.select.SelectNewStyle;
 import de.leuc.adt.quickfix.select.SelectSingle;
+import de.leuc.adt.quickfix.select.SelectSingle2021;
 import de.leuc.adt.quickfix.select.SelectSingleNewStyle;
 
 public class FixAppender implements IFixAppender {
@@ -18,6 +19,7 @@ public class FixAppender implements IFixAppender {
     public ArrayList<StatementAssist> additional_fixes(IQuickAssistInvocationContext context) {
         ArrayList<StatementAssist> list = new ArrayList<StatementAssist>();
         list.add(new SelectSingle());
+        list.add(new SelectSingle2021());
         list.add(new SelectSingleNewStyle());
         list.add(new SelectNewStyle());
         list.add(new MoveCorresponding());

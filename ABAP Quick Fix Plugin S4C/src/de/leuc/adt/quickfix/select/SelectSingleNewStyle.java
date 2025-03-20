@@ -44,7 +44,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
     // dot is not part of the statement
     // pattern allows various orders of into, from, where
     private static final String selectPattern = // vvvvvvvvvvvvvvvvvvvvv
-            "(?i)(?<breaks>[\n\r]*)(?<spaces>\s*)(?<select>select)\s+(?<single>single)\s+(?<fields>.*)\s+"
+            "(?i)(?<breaks>[\n\r]*)(?<spaces>\s*)(?<select>select)\s*(?<single>single)\s+(?<fields>.*)\s+"
                     + "(?:(?:(?<from>from)\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
                     + "|(?:(?<where>where)\s+(?<condition>.*)?)){3}";
     private static final String modernTargetSelectPattern = "${select} ${single} ${from} ${table} fields ${fields} ${where} ${condition}"
@@ -90,10 +90,12 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
             statementOneLine = statementOneLine.replaceFirst(getMatchPattern(), getReplacePattern());
         }
 
-        // we need to remember the indentation -- remove everything until the last line
-        String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
-        String originalIndentation = leading.replaceAll(".*[\r\n]", "");
-        leading = leading.substring(0, leading.length() - originalIndentation.length());
+//        // we need to remember the indentation -- remove everything until the last line
+//        String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
+//        String originalIndentation = leading.replaceAll(".*[\r\n]", "");
+//        leading = leading.substring(0, leading.length() - originalIndentation.length());
+        String originalIndentation = currentStatement.getLeadingCharacters().replaceAll("[\\s\\S]*[\\r\\n]", "");
+        ;
 
         // if preferences are set: produce a commented version of the original text
         String comentedOut = StatementUtil.getCommentedOutStatement(statement, originalIndentation);
@@ -106,7 +108,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         // statement
         String prefix = StatementUtil.getCommentPrefix(originalIndentation);
 
-        return leading.concat(prefix.concat(comentedOut).concat(newStatement));
+        return prefix.concat(comentedOut).concat(newStatement).substring(originalIndentation.length());
     }
 
     @Override
@@ -135,7 +137,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         String currentStatement = CodeReader.CurrentStatement.getStatement();
         // do not propose if already in new SQL style
         if (currentStatement.contains("@")) {
-            return false;
+            // return false;
         }
         if (Pattern.compile(getMatchPattern()).matcher(currentStatement.replaceAll("[\r\n]", "").trim()).find()) {// &&
                                                                                                                   // !(new
@@ -155,7 +157,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
     @Override
     public int getStartOfReplace() {
-        return CodeReader.CurrentStatement.getBeginOfStatement();
+        return CodeReader.CurrentStatement.getBeginOfStatementReplacement();
     }
 
     @Override

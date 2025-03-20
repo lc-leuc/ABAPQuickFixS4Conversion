@@ -61,7 +61,8 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
                 true);
         int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
     }
-    public SelectNewStyle( boolean debug ) {
+
+    public SelectNewStyle(boolean debug) {
         super();
     }
 
@@ -90,8 +91,8 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         // we need to remember the indentation -- remove everything until the last line
         String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
         String originalIndentation = leading.replaceAll(".*[\r\n]", "");
-        leading = leading.substring(0,leading.length() - originalIndentation.length());
-        
+        leading = leading.substring(0, leading.length() - originalIndentation.length());
+
         // if preferences are set: produce a commented version of the original text
         String comentedOut = StatementUtil.getCommentedOutStatement(statement, originalIndentation);
 
@@ -101,7 +102,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         // concatenate leading lines with automatic comment (if set in prefs)
         // as well as original statement (as comment, if set in prefs) and the new
         // statement
-        String prefix =  StatementUtil.getCommentPrefix(originalIndentation);
+        String prefix = StatementUtil.getCommentPrefix(originalIndentation);
 
         return leading.concat(prefix.concat(comentedOut).concat(newStatement));
 
@@ -141,7 +142,8 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
             indent_number = store.getInt(PreferenceConstants.INDENT);
-            //System.out.println("local preferences are: " + comments + " " + indent_number);
+            // System.out.println("local preferences are: " + comments + " " +
+            // indent_number);
 
             return true;
         }
@@ -150,7 +152,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 
     @Override
     public int getStartOfReplace() {
-        return CodeReader.CurrentStatement.getBeginOfStatement();
+        return CodeReader.CurrentStatement.getBeginOfStatementReplacement();
     }
 
     @Override

@@ -199,7 +199,10 @@ public class SelectFormat {
     private String adaptNewStyle(String in) {
         // replace where tkonn = tkonn with where tkonn = @tkonn
         // (no duplicate spaces) where tkonn eq tkonn
-        String replaceFirst = in.replaceFirst("([a-zA-Z0-9_]*) (.*) (..?) ([<a-zA-Z0-9_])", "$1 $2 $3 @$4");
+        if (in.contains("@")) {
+            return in;
+        }
+        String replaceFirst = in.replaceFirst("([a-zA-Z]+) (\\( )?([a-zA-Z0-9_]+) (..?) ([-<a-zA-Z0-9_+\\(\\)]+)( \\))?", "$1 $2$3 $4 @$5$6");
         return replaceFirst;
     }
 

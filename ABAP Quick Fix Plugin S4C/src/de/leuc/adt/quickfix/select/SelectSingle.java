@@ -48,13 +48,8 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     // allowing for different sort orders of into, from and where
     public static final String selectPattern = "(?i)"
             // + "(?<breaks>[\n\r]*)(?<spaces>\s*)"
-            + "(?<select>select)\s+(?<single>single)\s+(?<fields>.*)(?:(?:(?<from>from)(?<table>.*))"
-            + "|(?:(?<into>into)(?<variable>.*))|(?:(?<where>where)(?<condition>.*))){3}"; // only one of each
-
-    // matches modern style (2021) - from and fields 
-    public static final String modernMatchPattern = 
-            "(?im)(?<select>select)\\s+(?<single>single)\\s+(?:(?:(?:(?<fieldskey>fields)(?<fields>.*))|"
-            + "(?:(?<from>from)(?<table>.*))){2}|(?:(?:(?<into>into)(?<variable>.*))|(?:(?<where>where)(?<condition>.*))){2}){2}";
+            + "(?<select>select)\s+(?<single>single)\s+(?<fields>.*)(?:(?:(?<from> from )(?<table>.*))"
+            + "|(?:(?<into> into )(?<variable>.*))|(?:(?<where>where)(?<condition>.*))){3}"; // only one of each
 
     public static final String targetSelectPatternStart = "${select} ${fields} ${from} ${table} ${where} ${condition}";
     public static final String targetSelectPatternEnd = " ${into} ${variable} up to 1 rows. endselect";
@@ -85,54 +80,25 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         AbapStatement currentStatement = CodeReader.CurrentStatement;
         String statement = currentStatement.getStatement();
 
-        // other $1
-        String leadingCommentsWorkaround = statement.replaceFirst("(?im)([\\s\\S]*)^(\\s*)(select)[\\s\\S]*", "$1");
         // line cleanup, if messed up with comments
         statement = statement.replaceFirst("(?im)[\\s\\S]*^(\\s*)(select)", "$1$2");
-        int beginOfStatement = currentStatement.getBeginOfStatement();
-        int beginOfStatementReplacement = AbapCodeReader.scannerServices
-                .getStatementTokens(AbapCodeReader.document, beginOfStatement).get(0).offset;
+//        int beginOfStatement = currentStatement.getBeginOfStatement();
+//        int beginOfStatementReplacement = AbapCodeReader.scannerServices
+//                .getStatementTokens(AbapCodeReader.document, beginOfStatement).get(0).offset;
 
         SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
 
         // remove all line feed characters and leading spaces
-        String statementOneLine = statement.replaceAll("[\r\n]", "").trim();
+        String statementOneLine = statement.replaceAll("[\r\n]", "").replaceAll("\s+", " ").trim();
         // if leading2 is empty we neet to determine indentation from leading
-        String originalIndentation = "";
 
-        // we need to remember the indentation -- remove everything until the last line
-        String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
+        String originalIndentation = currentStatement.getLeadingCharacters().replaceAll("[\\s\\S]*[\\r\\n]", "");
 
-        if (leadingCommentsWorkaround.isEmpty()) {
-            originalIndentation = leading.replaceAll("[\\s\\S]*[\\r\\n]", "");
-            leading = leading.substring(0, leading.length() - originalIndentation.length());
-        } else {
-            // otherwise we determine originalindentation from leading
-            originalIndentation = statement.replaceFirst("(?im)^(\\s*)(select)[\\s\\S]*", "$1");
-        }
-        leading = leading + leadingCommentsWorkaround;
-
-        // addressing conversion from new style to up-to-one-rows. (see #6)
-        // if statement is in original style already, then do not apply normal matching
-        // pattern - use modernMatching patten instead.
-        // let's get rid of into corresponding
-        // check if fields comes after from
-        boolean original_in_modern_style = statementOneLine.replaceFirst("(?im)(.*)into corresponding fields.*", "$1")
-                .matches("(?im).*(?:(?:(?<from>\\sfrom\\s)(?<table>.*))(?:(?<fields>\\sfields\\s)(?<tle>.*)))");
-        String replacement = "";
-        if (original_in_modern_style) {
-            // remember the current table, in order to determine order-by statement
-            currentTable = statementOneLine.replaceFirst(modernMatchPattern, "${table}")
-                    .replaceFirst("(.*)\s+as\s+.*", "$1").trim();
-            // do the actual replacement
-            replacement = statementOneLine.replaceFirst(modernMatchPattern, getReplacePattern(true));
-        } else {
-            // remember the current table, in order to determine order-by statement
-            currentTable = statementOneLine.replaceFirst(getMatchPattern(), "${table}")
-                    .replaceFirst("(.*)\s+as\s+.*", "$1").trim();
-            // do the actual replacement
-            replacement = statementOneLine.replaceFirst(getMatchPattern(), getReplacePattern());
-        }
+        // remember the current table, in order to determine order-by statement
+        currentTable = statementOneLine.replaceFirst(getMatchPattern(), "${table}").replaceFirst("(.*)\s+as\s+.*", "$1")
+                .trim();
+        // do the actual replacement
+        String replacement = statementOneLine.replaceFirst(getMatchPattern(), getReplacePattern());
 
         // self-defined prefix - from Preferences
         String prefix = StatementUtil.getCommentPrefix(originalIndentation);
@@ -146,7 +112,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         // concatenate leading lines with automatic comment (if set in prefs)
         // as well as original statement (as comment, if set in prefs) and the new
         // statement
-        String returning = leading.concat(prefix.concat(comentedOut.concat(newStatement)));
+        String returning = prefix.concat(comentedOut.concat(newStatement));
 
 //        //    Debugging
 //        System.out.println("---------------------------------------------------------------------------------------");
@@ -177,7 +143,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 //        System.out.println(returning);
 //        System.out.println("---------------------------------------------------------------------------------------");
 
-        return returning;
+        return returning.substring(originalIndentation.length()); // make sure the first line is not indented twice
     }
 
     @Override
@@ -191,7 +157,8 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
                 + "In cases that select single might not be unique an ordering of "
                 + "results can be enforced by providing the 'order by' statement. "
                 + "For tables that feature a new ruuid-style key field after S4/Hana transition, "
-                + "a configurable 'order by' sequence is provided in preferences.";
+                + "a configurable 'order by' sequence is provided in preferences." + "<br/>"
+                + getChangedCode().replaceAll("\n", "<br/>");
     }
 
     private static Image icon;
@@ -206,11 +173,12 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public boolean canAssist() {
-        String currentStatement = CodeReader.CurrentStatement.getStatement().replaceAll("[\r\n]", "").trim();
-        if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {
-            if (currentStatement.contains("join")) {
-                return false;
-            } else {
+        String currentStatement = CodeReader.CurrentStatement.getStatement().replaceAll("[\r\n]", "")
+                .replaceAll("\s+", " ").trim();
+        if (currentStatement.contains("join")) {
+            return false;
+        } else {
+            if (Pattern.compile(getMatchPattern()).matcher(currentStatement).find()) {
                 return true;
             }
         }
@@ -219,7 +187,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public int getStartOfReplace() {
-        return CodeReader.CurrentStatement.getBeginOfStatement();
+        return CodeReader.CurrentStatement.getBeginOfStatementReplacement();
     }
 
     @Override
@@ -230,20 +198,15 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
     @Override
     public String getMatchPattern() {
         return selectPattern;
-
     }
 
     @Override
     public String getReplacePattern() {
-        return getReplacePattern(false);
-    }
-
-    private String getReplacePattern(boolean forceNewStyle) {
         StringBuffer temp = new StringBuffer();
         String endPattern = "";
         boolean newStyle = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.NEW_STYLE);
 
-        if (newStyle || forceNewStyle) {
+        if (newStyle) {
             temp.append(modernTargetSelectPatternStart);
             endPattern = modernTargetSelectPatternEnd;
         } else {
@@ -266,4 +229,18 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         return temp.toString();
 
     }
+
+    private String statementBuffer = "";
+    private boolean isModernBuffer = false;
+//    private boolean isInModernStyle(String statement) {
+//        if (statementBuffer.equals(statement)) {
+//            return isModernBuffer;
+//        } else {
+//            
+//            statementBuffer = statement;
+//        isModernBuffer = statement.replaceFirst("(?im)(.*)into corresponding fields of.*", "$1")
+//                .matches("(?im).*(?:(?:(?<from>\\sfrom\\s)(?<table>.*))(?:(?<fields>\\sfields\\s)(?<tle>.*)))");
+//        }
+//        return isModernBuffer;
+//    }
 }

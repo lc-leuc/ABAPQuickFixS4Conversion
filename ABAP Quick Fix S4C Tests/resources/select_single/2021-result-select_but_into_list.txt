@@ -1,0 +1,7 @@
+    select
+      from but020
+      fields partner, addrnumber, nation
+      where partner = @zgs_but020-partner
+      into ( @partner, @addrnumber, @nation )
+      up to 1 rows.
+    endselect

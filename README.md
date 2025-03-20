@@ -19,16 +19,22 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 ### Preferences
 
 * Provide / change default _order by_ sequences for tables.
-* Optional: automatically add a change comment preceeding the change.
+* Optional: automatically add a change comment preceding the change.
 * Optional: automatically uncomment changed code instead of replacing it.
 * Optional: use new syntax using _field_.
 
 ### Changes
 
+#### 1.4.3
+
+* Fix positioning problem (see #7).
+* Minor improvements: key words, formatting, more tests,...
+* Separate classic SQL and Modern SQL of Select Single.
+
 #### 1.4.2
 
-* Included recognition for _select single_ in new style (see #65).
-* Changed order of statements within _select_; now _where_ is always located after table (new and old style).
+* Included recognition for _select single_ in new style (see #6).
+* Changed order of statements within _select_  now _where_ is always located after table (new and old style).
 * Handling of complex field lists using functions and aliases correctly.
 * Adaptations and minor fixes in formatter and tests.
 * Remove unnecessary string concatenation.

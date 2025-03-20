@@ -1,0 +1,3 @@
+    select single bstkd from wbhd
+      into gv_bstkd_rahmen
+      where tkonn = gv_tkonn_from.

@@ -1,0 +1,8 @@
+    select
+      from wbhd
+      fields bstkd
+      where tkonn = @gv_tkonn_from
+      into @gv_bstkd_rahmen
+      up to 1 rows.
+    endselect
+
