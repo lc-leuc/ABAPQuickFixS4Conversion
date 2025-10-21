@@ -16,18 +16,18 @@ import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
 public class MoveCorresponding extends StatementAssistRegex implements IAssistRegex {
 
-    private static final String selectPattern =
+    private static final String SELECTPATTERN =
             // move-corresponding struct2 to struct3.
             // 1 2 3
             "(?s)(\\s*)move-corresponding\\s+(.*)\\s+to\\s+(.*)";
 
-    private static final String replaceByPattern = "$3 = corresponding #( $2 )";
+    private static final String REPLACEBYPATTERN = "$3 = corresponding #( $2 )";
     /**
      * already contains line break
      */
     // private String currentIndent;
     private boolean comments = false;
-    private int indent_number = 2;
+    private int indentNumber = 2;
 
     public MoveCorresponding() {
         super();
@@ -61,8 +61,8 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
     private String getCommentedOutStatement(String in) {
         if (Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.COMMENT_OUT)) {
 
-            in = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*move-corresponding.*)", "*$2");
-            return in.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
+            String out = in.replaceFirst("(?i)(?s)([\\n\\r]*)(\\s*move-corresponding.*)", "*$2");
+            return out.replaceAll("(\r\n|\n)", "$1" + "*").concat("\n");
         }
         return "";
     }
@@ -99,7 +99,7 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
 
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
-            indent_number = store.getInt(PreferenceConstants.INDENT);
+            indentNumber = store.getInt(PreferenceConstants.INDENT);
 
             return true;
         }
@@ -118,13 +118,13 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
 
     @Override
     public String getMatchPattern() {
-        return selectPattern;
+        return SELECTPATTERN;
 
     }
 
     @Override
     public String getReplacePattern() {
-        return replaceByPattern;
+        return REPLACEBYPATTERN;
     }
 
     private String getCommentPrefix() {
@@ -136,7 +136,7 @@ public class MoveCorresponding extends StatementAssistRegex implements IAssistRe
     }
 
     private String getPrefix() {
-        return String.format("%" + indent_number + "s", "");
+        return String.format("%" + indentNumber + "s", "");
     }
 
 }

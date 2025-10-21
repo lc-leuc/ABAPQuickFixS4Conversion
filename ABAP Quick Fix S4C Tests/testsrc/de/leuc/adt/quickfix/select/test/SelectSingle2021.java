@@ -54,8 +54,8 @@ class SelectSingle2021 extends AbstractTest {
     // we are testing without order by clause, i.e. an additional end of statement
     // (dot) is necessary
 
-    private static final String modernTargetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternStart;
-    private static final String modernTargetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternEnd;
+    private static final String modernTargetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.MODERNTARGETSELECTPATTERNSTART;
+    private static final String modernTargetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.MODERNTARGETSELECTPATTERNEND;
 
     private static final String replaceByModern = modernTargetSelectPatternStart + modernTargetSelectPatternEnd;
 

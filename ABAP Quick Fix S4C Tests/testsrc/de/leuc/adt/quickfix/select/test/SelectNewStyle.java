@@ -62,7 +62,7 @@ class SelectNewStyle extends AbstractTest{
     void tearDown() throws Exception {
     }
 
-    private static final String modernTargetSelectPattern = de.leuc.adt.quickfix.select.SelectNewStyle.modernTargetSelectPattern;
+    private static final String modernTargetSelectPattern = de.leuc.adt.quickfix.select.SelectNewStyle.MODERNTARGETSELECTPATTERN;
 
    // private static final String replaceBy = de.leuc.adt.quickfix.select.SelectNewStyle.selectPattern;
     private static final String replaceByModern = modernTargetSelectPattern;

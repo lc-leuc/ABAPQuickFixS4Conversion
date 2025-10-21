@@ -17,15 +17,15 @@ public class OrderByPrefParser {
 
     public String serialize(Set<OrderByPrefEntry> entries) {
         StringBuffer sb = new StringBuffer();
-        boolean not_first = false;
+        boolean notFirst = false;
         for (OrderByPrefEntry userEntry : entries) {
-            if (not_first) {
+            if (notFirst) {
                 sb.append(ENTRIES_SEPARATOR);
             }
             sb.append(userEntry.getTableMatch());
             sb.append(INNER_SEPERATOR);
             sb.append(userEntry.getOrderBy());
-            not_first = true;
+            notFirst = true;
         }
 
         return sb.toString();

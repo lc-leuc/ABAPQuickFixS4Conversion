@@ -4,7 +4,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.swt.graphics.Image;
 
-import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapCodeReader;
 import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
 import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
@@ -46,17 +45,17 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     // dot is not part of the statement
     // allowing for different sort orders of into, from and where
-    public static final String selectPattern = "(?i)"
+    public static final String SELECTPATTERN = "(?i)"
             // + "(?<breaks>[\n\r]*)(?<spaces>\s*)"
             + "(?<select>select)\s+(?<single>single)\s+(?<fields>.*)(?:(?:(?<from> from )(?<table>.*))"
             + "|(?:(?<into> into )(?<variable>.*))|(?:(?<where>where)(?<condition>.*))){3}"; // only one of each
 
-    public static final String targetSelectPatternStart = "${select} ${fields} ${from} ${table} ${where} ${condition}";
-    public static final String targetSelectPatternEnd = " ${into} ${variable} up to 1 rows. endselect";
-    public static final String modernTargetSelectPatternStart = "${select} ${from} ${table} fields ${fields} ${where} ${condition}";
-    public static final String modernTargetSelectPatternEnd = " ${into} ${variable} up to 1 rows. endselect";
+    public static final String TARGETSELECTPATTERNSTART = "${select} ${fields} ${from} ${table} ${where} ${condition}";
+    public static final String TARGETSELECTPATTERNEND = " ${into} ${variable} up to 1 rows. endselect";
+    public static final String MODERNTARGETSELECTPATTERNSTART = "${select} ${from} ${table} fields ${fields} ${where} ${condition}";
+    public static final String MODERNTARGETSELECTPATTERNEND = " ${into} ${variable} up to 1 rows. endselect";
 
-    private String currentTable;
+    protected String currentTable;
 
     /**
      * already contains line break
@@ -197,7 +196,7 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
 
     @Override
     public String getMatchPattern() {
-        return selectPattern;
+        return SELECTPATTERN;
     }
 
     @Override
@@ -207,11 +206,11 @@ public class SelectSingle extends StatementAssistRegex implements IAssistRegex {
         boolean newStyle = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.NEW_STYLE);
 
         if (newStyle) {
-            temp.append(modernTargetSelectPatternStart);
-            endPattern = modernTargetSelectPatternEnd;
+            temp.append(MODERNTARGETSELECTPATTERNSTART);
+            endPattern = MODERNTARGETSELECTPATTERNEND;
         } else {
-            temp.append(targetSelectPatternStart);
-            endPattern = targetSelectPatternEnd;
+            temp.append(TARGETSELECTPATTERNSTART);
+            endPattern = TARGETSELECTPATTERNEND;
         }
         // order by depends on table
         // several tables feature uuids as keys - use old key fields to order lines

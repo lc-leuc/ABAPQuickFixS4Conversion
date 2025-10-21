@@ -38,11 +38,11 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
      */
 
     // pattern allows different orders of into, from, where
-    public static final String selectPattern = "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+"
+    public static final String SELECTPATTERN = "(?i)(?<breaks>[\n\r]*)(?<spaces>\\s*)(?<select>select)\\s+(?<fields>.*)\\s+"
             + "(?:(?:(?<from>from)\\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
             + "|(?:(?<where>where)\\s+(?<condition>.*)?)){3}";
 
-    public static final String modernTargetSelectPattern = "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
+    public static final String MODERNTARGETSELECTPATTERN = "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
             + " ${into} ${variable}";
 
     private String currentTable;
@@ -50,7 +50,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
      * already contains line break
      */
     private boolean comments = false;
-    private int indent_number = 2;
+    private int indentNumber = 2;
 
     public SelectNewStyle() {
         super();
@@ -73,6 +73,8 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         String statement = currentStatement.getStatement();
 
         int beginOfStatement = currentStatement.getBeginOfStatement();
+        // CodeReader.CurrentStatement.statementTokens.get(i).offset;
+        @SuppressWarnings("restriction")
         int beginOfStatementReplacement = AbapCodeReader.scannerServices
                 .getStatementTokens(AbapCodeReader.document, beginOfStatement).get(0).offset;
 
@@ -141,7 +143,7 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
-            indent_number = store.getInt(PreferenceConstants.INDENT);
+            indentNumber = store.getInt(PreferenceConstants.INDENT);
             // System.out.println("local preferences are: " + comments + " " +
             // indent_number);
 
@@ -162,13 +164,13 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
 
     @Override
     public String getMatchPattern() {
-        return selectPattern;
+        return SELECTPATTERN;
 
     }
 
     @Override
     public String getReplacePattern() {
-        return modernTargetSelectPattern;
+        return MODERNTARGETSELECTPATTERN;
 
     }
 
