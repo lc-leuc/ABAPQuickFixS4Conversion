@@ -134,13 +134,13 @@ public class OrderByPreferencesPage extends PreferencePage implements IWorkbench
 
     }
 
-    private class TextConstants {
+    private final class TextConstants {
 
-        public static final String Catalog_Entries = "Entries";
-        public static final String Remove = "Remove";
-        public static final String Edit = "Edit";
-        public static final String Add = "Add";
-        public static final String Init = "(Re)-Init";
+        public static final String CATALOG_ENTRIES = "Entries";
+        public static final String REMOVE = "Remove";
+        public static final String EDIT = "Edit";
+        public static final String ADD = "Add";
+        public static final String INIT = "(Re)-Init";
 
     }
 
@@ -223,7 +223,7 @@ public class OrderByPreferencesPage extends PreferencePage implements IWorkbench
         composite.setLayout(layout);
 
         Group entriesGroup = new Group(composite, SWT.NONE);
-        entriesGroup.setText(TextConstants.Catalog_Entries);
+        entriesGroup.setText(TextConstants.CATALOG_ENTRIES);
         GridLayout gl = new GridLayout(2, false);
         entriesGroup.setLayout(gl);
         entriesGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -243,7 +243,7 @@ public class OrderByPreferencesPage extends PreferencePage implements IWorkbench
 
         Button addButton = new Button(buttonComposite, SWT.PUSH);
         addButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        addButton.setText(TextConstants.Add);
+        addButton.setText(TextConstants.ADD);
         addButton.addSelectionListener(new SelectionListener() {
 
             public void widgetDefaultSelected(SelectionEvent e) {
@@ -269,7 +269,7 @@ public class OrderByPreferencesPage extends PreferencePage implements IWorkbench
         });
         final Button editButton = new Button(buttonComposite, SWT.PUSH);
         editButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        editButton.setText(TextConstants.Edit);
+        editButton.setText(TextConstants.EDIT);
         editButton.setEnabled(false);
         editButton.addSelectionListener(new SelectionListener() {
 
@@ -298,7 +298,7 @@ public class OrderByPreferencesPage extends PreferencePage implements IWorkbench
         });
         final Button removeButton = new Button(buttonComposite, SWT.PUSH);
         removeButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        removeButton.setText(TextConstants.Remove);
+        removeButton.setText(TextConstants.REMOVE);
         removeButton.setEnabled(false);
 
         removeButton.addSelectionListener(new SelectionListener() {
@@ -317,7 +317,7 @@ public class OrderByPreferencesPage extends PreferencePage implements IWorkbench
 
         final Button initButton = new Button(buttonComposite, SWT.PUSH);
         initButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        initButton.setText(TextConstants.Init);
+        initButton.setText(TextConstants.INIT);
         initButton.setEnabled(true);
 
         initButton.addMouseListener(new MouseListener() {

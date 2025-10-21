@@ -1,17 +1,8 @@
 package de.leuc.adt.quickfix.select;
 
-import java.util.regex.Pattern;
-
-import org.eclipse.swt.graphics.Image;
-
-import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapCodeReader;
-import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
 import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
-import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 
-import de.leuc.adt.quickfix.Activator;
 import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
-import de.leuc.adt.quickfix.preferences.PreferenceConstants;
 
 /**
  * QuickFix: Replaces a select single statement in modern style with a select
@@ -46,12 +37,10 @@ public class SelectSingle2021 extends SelectSingle implements IAssistRegex {
 
     // dot is not part of the statement
     // allowing for different sort orders of into, from and where
-    public static final String selectPattern = "(?im)(?<select>select)\\s+(?<single>single)\\s*(?:(?:(?:(?<fieldskey> fields )(?<fields>.*))|(?:(?<from> from )(?<table>.*))){2}|(?:(?:(?<into> into )(?<variable>.*))|(?:(?<where> where )(?<condition>.*))){2}){2}";
+    public static final String SELECTPATTERN = "(?im)(?<select>select)\\s+(?<single>single)\\s*(?:(?:(?:(?<fieldskey> fields )(?<fields>.*))|(?:(?<from> from )(?<table>.*))){2}|(?:(?:(?<into> into )(?<variable>.*))|(?:(?<where> where )(?<condition>.*))){2}){2}";
 
-    public static final String modernTargetSelectPatternStart = "${select} ${from} ${table} fields ${fields} ${where} ${condition}";
-    public static final String modernTargetSelectPatternEnd = " ${into} ${variable} up to 1 rows. endselect";
-
-    private String currentTable;
+    public static final String MODERNTARGETSELECTPATTERNSTART = "${select} ${from} ${table} fields ${fields} ${where} ${condition}";
+    public static final String MODERNTARGETSELECTPATTERNEND = " ${into} ${variable} up to 1 rows. endselect";
 
     public SelectSingle2021() {
         super();
@@ -74,7 +63,7 @@ public class SelectSingle2021 extends SelectSingle implements IAssistRegex {
 
     @Override
     public String getMatchPattern() {
-        return selectPattern;
+        return SELECTPATTERN;
     }
 
     @Override
@@ -82,8 +71,8 @@ public class SelectSingle2021 extends SelectSingle implements IAssistRegex {
         StringBuffer temp = new StringBuffer();
         String endPattern = "";
 
-        temp.append(modernTargetSelectPatternStart);
-        endPattern = modernTargetSelectPatternEnd;
+        temp.append(MODERNTARGETSELECTPATTERNSTART);
+        endPattern = MODERNTARGETSELECTPATTERNEND;
 
         // order by depends on table
         // several tables feature uuids as keys - use old key fields to order lines

@@ -25,6 +25,11 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 ### Changes
 
+#### 1.4.4
+
+* Adapt dependencies to ADT 3.54 / QuickFix 1.1.8 (changes in upstream).
+* Fixed several code check violations.
+
 #### 1.4.3
 
 * Fix positioning problem (see #7).

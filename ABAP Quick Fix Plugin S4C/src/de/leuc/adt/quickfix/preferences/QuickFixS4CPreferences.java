@@ -23,6 +23,14 @@ public class QuickFixS4CPreferences extends FieldEditorPreferencePage implements
         setDescription("Settings for ABAP QuickFix Plugin S4");
     }
 
+    public final void setPreferenceStore(IPreferenceStore store) {
+        super.setPreferenceStore(store);
+    }
+
+    public final void setDescription(String description) {
+        super.setDescription(description);
+    }
+
     @Override
     public void createFieldEditors() {
         Composite top = new Composite(getFieldEditorParent(), SWT.LEFT);
@@ -35,15 +43,15 @@ public class QuickFixS4CPreferences extends FieldEditorPreferencePage implements
         // children to populate.
         top.setLayout(new GridLayout());
 
-        Group leuc_group = new Group(top, SWT.SHADOW_ETCHED_IN);
-        leuc_group.setText("Comments and Indentations.");
-        addField(new BooleanFieldEditor(PreferenceConstants.NEW_STYLE, "&Use new style (2021)", leuc_group));
-        addField(new BooleanFieldEditor(PreferenceConstants.ADD_COMMENTS, "&Add change comment line", leuc_group));
-        addField(new BooleanFieldEditor(PreferenceConstants.COMMENT_OUT, "&Comment out original", leuc_group));
+        Group leucGroup = new Group(top, SWT.SHADOW_ETCHED_IN);
+        leucGroup.setText("Comments and Indentations.");
+        addField(new BooleanFieldEditor(PreferenceConstants.NEW_STYLE, "&Use new style (2021)", leucGroup));
+        addField(new BooleanFieldEditor(PreferenceConstants.ADD_COMMENTS, "&Add change comment line", leucGroup));
+        addField(new BooleanFieldEditor(PreferenceConstants.COMMENT_OUT, "&Comment out original", leucGroup));
         addField(new org.eclipse.jface.preference.IntegerFieldEditor(PreferenceConstants.INDENT,
-                "&Indentations in select statements", leuc_group, 2));
+                "&Indentations in select statements", leucGroup, 2));
         addField(new org.eclipse.jface.preference.StringFieldEditor(PreferenceConstants.COMMENT_TEXT,
-                "&Comment text for changes", 70, leuc_group));
+                "&Comment text for changes", 70, leucGroup));
 
     }
 
@@ -61,8 +69,7 @@ public class QuickFixS4CPreferences extends FieldEditorPreferencePage implements
     @Override
     public boolean performOk() {
 
-        Boolean ApplyClose = super.performOk();
-        return ApplyClose;
+        return super.performOk();
     }
 
 }

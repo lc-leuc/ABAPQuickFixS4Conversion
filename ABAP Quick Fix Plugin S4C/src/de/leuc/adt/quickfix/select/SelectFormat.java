@@ -15,9 +15,9 @@ import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
  */
 public class SelectFormat {
 
-    private static final String secondLevelOr = "     ";
-    private static final String secondLevelAnd = "    ";
-    private static final String firstLevel = "  ";
+    private static final String SECONDLEVELOR = "     ";
+    private static final String SECONDLEVELAND = "    ";
+    private static final String FIRSTLEVEL = "  ";
     private boolean lowercase = true;
 
     /**
@@ -38,10 +38,11 @@ public class SelectFormat {
      * 
      * @return - true if lower case is set
      */
-    public boolean getLowerCase() {
+
+    public boolean isLowerCase() {
+ 
         return lowercase;
     }
-
     /**
      * Splits a select statement into an array of the components.
      * 
@@ -54,10 +55,10 @@ public class SelectFormat {
         String[] r = new String[] {};
 //        String from = "(?i)(?=from )";
 
-        in = in.replaceFirst("(?i)(into) (corresponding) (fields) (of) (table)", "$1$2$3$4$5");
-        in = in.replaceFirst("(?i)(into) (corresponding) (fields) (of)", "$1$2$3$4");
+        String temp = in.replaceFirst("(?i)(into) (corresponding) (fields) (of) (table)", "$1$2$3$4$5");
+        String out = temp.replaceFirst("(?i)(into) (corresponding) (fields) (of)", "$1$2$3$4");
 
-        r = in.split("(?i)(?=\sfrom\s)" // + "|(?= as )"
+        r = out.split("(?i)(?=\sfrom\s)" // + "|(?= as )"
                 + "|(?=intocorrespondingfieldsoftable\s)|(?=intocorrespondingfieldsof\s)"
                 + "|(?=\sinto\s)|(?=\sup\sto\s)|(?=\swhere\s)|(?=\sand\s)"
                 + "|(?=\sor\s)|(?=\sendselect)|(?=\sorder\sby\s)|(?=\sgroup\sby\s)|(?=\sfields\s)|(?=\sjoin\s)");
@@ -76,14 +77,15 @@ public class SelectFormat {
      */
     public String format(String originalIndentation, String replacement, String startWith) {
         // fallback
+        String startWith2 = startWith;
         if (!("select".equals(startWith) || "select single".equals(startWith))) {
-            startWith = "select";
+            startWith2 = "select";
         }
 
         String[] s = split(replacement.replaceAll("\s\s*", " ")); // remove multiple spaces
         String newStatement = "";
         for (String line : s) {
-            newStatement += formatLine(line, originalIndentation, startWith);
+            newStatement += formatLine(line, originalIndentation, startWith2);
         }
         return newStatement.replaceAll("\s+\\.", ".");
     }
@@ -98,11 +100,11 @@ public class SelectFormat {
      *                            <code>select single</code>
      * @return - formatted line
      */
-    public String formatLine(String input, String originalIndentation, String start) {
+    public String formatLine(String input, String indent, String start) {
 
         // String in = input.toLowerCase();
-        String indentation = originalIndentation;
-        originalIndentation = "\n" + originalIndentation;
+        String indentation = indent;
+        String originalIndentation = "\n" + indent;
         String in = input;
         String in2 = input.toLowerCase().trim();
         if (in2.startsWith(start)) {
@@ -119,7 +121,7 @@ public class SelectFormat {
         } else if (in2.startsWith("from ")) {
             String table = in.replaceFirst("(?i)from\s+(.*)", "$1").trim();
             in = handleInLineComment(transformCase("from ").concat(table));
-            return originalIndentation + firstLevel + in.trim();
+            return originalIndentation + FIRSTLEVEL + in.trim();
         } else if (in2.startsWith("as ")) {
             return " " + in.trim();
         } else if (in2.startsWith("fields ")) {
@@ -128,34 +130,34 @@ public class SelectFormat {
             // behind and negative look ahead
             in = transformCase("fields ").concat(fields.replaceAll("(?<!,| as|\\(| distinct)\\s+(?!as |\\))", ", "));
             // }
-            return originalIndentation + firstLevel + in.trim();
+            return originalIndentation + FIRSTLEVEL + in.trim();
         } else if (in2.startsWith("where ")) {
-            return originalIndentation + firstLevel + adaptNewStyle(in).trim();
+            return originalIndentation + FIRSTLEVEL + adaptNewStyle(in).trim();
         } else if (in2.startsWith("and ")) {
-            return originalIndentation + secondLevelAnd + adaptNewStyle(in).trim();
+            return originalIndentation + SECONDLEVELAND + adaptNewStyle(in).trim();
         } else if (in2.startsWith("or ")) {
-            return originalIndentation + secondLevelOr + adaptNewStyle(in).trim();
+            return originalIndentation + SECONDLEVELOR + adaptNewStyle(in).trim();
         } else if (in2.toLowerCase().startsWith("intocorrespondingfieldsoftable ")) {
-            return originalIndentation + firstLevel + adaptInto(in)
+            return originalIndentation + FIRSTLEVEL + adaptInto(in)
                     .replaceFirst("(?i)(into)(corresponding)(fields)(of)(table) ", "$1 $2 $3 $4 $5 ").trim();
         } else if (in2.toLowerCase().startsWith("intocorrespondingfieldsof ")) {
             String temp3 = adaptInto(in);
             temp3 = temp3.replaceFirst("(?i)(into)(corresponding)(fields)(of) ", "$1 $2 $3 $4 ").trim();
-            return originalIndentation + firstLevel + temp3;
+            return originalIndentation + FIRSTLEVEL + temp3;
         } else if (in2.startsWith("into ")) {
-            return originalIndentation + firstLevel + adaptInto(in2).trim();
+            return originalIndentation + FIRSTLEVEL + adaptInto(in2).trim();
         } else if (in2.startsWith("group by ")) {
-            return originalIndentation + firstLevel + in2.trim();
+            return originalIndentation + FIRSTLEVEL + in2.trim();
         } else if (in2.startsWith("order by primary key")) {
-            return originalIndentation + firstLevel + transformCase(in).trim();
+            return originalIndentation + FIRSTLEVEL + transformCase(in).trim();
         } else if (in2.startsWith("order by ")) {
             String orderByList = in.replaceFirst("(?i)order by\s+(.*)", "$1").trim();
-            return originalIndentation + firstLevel + transformCase("order by ").concat(orderByList).trim();
+            return originalIndentation + FIRSTLEVEL + transformCase("order by ").concat(orderByList).trim();
         } else if (in2.startsWith("endselect")) {
             // no additional line break
             return originalIndentation + transformCase(in2).trim();
         } else {
-            return originalIndentation + firstLevel + transformCase(in).trim();
+            return originalIndentation + FIRSTLEVEL + transformCase(in).trim();
         }
 
     }
@@ -165,7 +167,7 @@ public class SelectFormat {
     }
 
     private String transformCase(String string) {
-        if (getLowerCase()) {
+        if (isLowerCase()) {
             return string;
         }
         return string.toUpperCase();

@@ -53,21 +53,21 @@ class SelectSingle extends AbstractTest {
 
     // we are testing without order by clause, i.e. an additional end of statement
     // (dot) is necessary
-    private static final String targetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternStart;
+    private static final String TARGETSELECTPATTERNSTART = de.leuc.adt.quickfix.select.SelectSingle.TARGETSELECTPATTERNSTART;
 
-    private static final String targetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.targetSelectPatternEnd;
-    private static final String modernTargetSelectPatternStart = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternStart;
-    private static final String modernTargetSelectPatternEnd = de.leuc.adt.quickfix.select.SelectSingle.modernTargetSelectPatternEnd;
+    private static final String TARGETSELECTPATTERNEND = de.leuc.adt.quickfix.select.SelectSingle.TARGETSELECTPATTERNEND;
+    private static final String MODERNTARGETSELECTPATTERNSTART = de.leuc.adt.quickfix.select.SelectSingle.MODERNTARGETSELECTPATTERNSTART;
+    private static final String MODERNTARGETSELECTPATTERNEND = de.leuc.adt.quickfix.select.SelectSingle.MODERNTARGETSELECTPATTERNEND;
 
-    private static final String replaceBy = targetSelectPatternStart + targetSelectPatternEnd;
-    private static final String replaceByModern = modernTargetSelectPatternStart + modernTargetSelectPatternEnd;
+    private static final String REPLACEBY = TARGETSELECTPATTERNSTART + TARGETSELECTPATTERNEND;
+    private static final String REPLACEBYMODERN = MODERNTARGETSELECTPATTERNSTART + MODERNTARGETSELECTPATTERNEND;
 
     String getReplacement(String statement, StatementAssistRegex cut) {
-        return statement.replaceFirst(cut.getMatchPattern(), replaceBy);
+        return statement.replaceFirst(cut.getMatchPattern(), REPLACEBY);
     }
 
     String getModernReplacement(String statement, StatementAssistRegex cut) {
-        return statement.replaceFirst(cut.getMatchPattern(), replaceByModern);
+        return statement.replaceFirst(cut.getMatchPattern(), REPLACEBYMODERN);
     }
 
     @Test

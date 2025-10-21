@@ -8,7 +8,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
-import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapCodeReader;
 import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
 import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
@@ -43,11 +42,11 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
     // dot is not part of the statement
     // pattern allows various orders of into, from, where
-    private static final String selectPattern = // vvvvvvvvvvvvvvvvvvvvv
+    private static final String SELECTPATTERN = // vvvvvvvvvvvvvvvvvvvvv
             "(?i)(?<breaks>[\n\r]*)(?<spaces>\s*)(?<select>select)\s*(?<single>single)\s+(?<fields>.*)\s+"
                     + "(?:(?:(?<from>from)\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
                     + "|(?:(?<where>where)\s+(?<condition>.*)?)){3}";
-    private static final String modernTargetSelectPattern = "${select} ${single} ${from} ${table} fields ${fields} ${where} ${condition}"
+    private static final String MODERNTARGETSELECTPATTERN = "${select} ${single} ${from} ${table} fields ${fields} ${where} ${condition}"
             + " ${into} ${variable}";
 
     /**
@@ -55,7 +54,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
      */
     private String leadingBreaks = "";
     private boolean comments = false;
-    private int indent_number = 2;
+    private int indentNumber = 2;
 
     public SelectSingleNewStyle() {
         super();
@@ -75,8 +74,9 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         String statement = currentStatement.getStatement();
 
         int beginOfStatement = currentStatement.getBeginOfStatement();
-        int beginOfStatementReplacement = AbapCodeReader.scannerServices
-                .getStatementTokens(AbapCodeReader.document, beginOfStatement).get(0).offset;
+//        @SuppressWarnings("restriction")
+//        int beginOfStatementReplacement = AbapCodeReader.scannerServices
+//                .getStatementTokens(AbapCodeReader.document, beginOfStatement).get(0).offset;
 
         SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
 
@@ -137,7 +137,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
         String currentStatement = CodeReader.CurrentStatement.getStatement();
         // do not propose if already in new SQL style
         if (currentStatement.contains("@")) {
-            // return false;
+            return false;
         }
         if (Pattern.compile(getMatchPattern()).matcher(currentStatement.replaceAll("[\r\n]", "").trim()).find()) {// &&
                                                                                                                   // !(new
@@ -147,7 +147,7 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
             IPreferenceStore store = Activator.getDefault().getPreferenceStore();
             comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
-            indent_number = store.getInt(PreferenceConstants.INDENT);
+            indentNumber = store.getInt(PreferenceConstants.INDENT);
             // System.out.println("preferences are: " + comments + " " + indent_number);
 
             return true;
@@ -167,13 +167,13 @@ public class SelectSingleNewStyle extends StatementAssistRegex implements IAssis
 
     @Override
     public String getMatchPattern() {
-        return selectPattern;
+        return SELECTPATTERN;
 
     }
 
     @Override
     public String getReplacePattern() {
-        return modernTargetSelectPattern;
+        return MODERNTARGETSELECTPATTERN;
 
     }
 
