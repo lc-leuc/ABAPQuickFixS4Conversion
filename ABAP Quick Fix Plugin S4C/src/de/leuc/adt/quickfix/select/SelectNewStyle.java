@@ -2,19 +2,9 @@ package de.leuc.adt.quickfix.select;
 
 import java.util.regex.Pattern;
 
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
-
-import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapCodeReader;
 import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
-import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
-import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 
-import de.leuc.adt.quickfix.Activator;
-import de.leuc.adt.quickfix.preferences.PreferenceConstants;
+import de.leuc.adt.quickfix.util.StatementUtil;
 
 /**
  * QuickFix: Applies new formatting rules to select statement.
@@ -22,8 +12,9 @@ import de.leuc.adt.quickfix.preferences.PreferenceConstants;
  * @author lc
  *
  */
-public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex {
+public class SelectNewStyle extends StatementAssistRegexS4C {
 
+    private static final String STATEMENT_START = "select";
     /**
      * Capturing Groups
      * <ul>
@@ -42,24 +33,20 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
             + "(?:(?:(?<from>from)\\s+(?<table>.*))" + "|(?:(?<into>into)(?<variable>.*))"
             + "|(?:(?<where>where)\\s+(?<condition>.*)?)){3}";
 
+    public static final String TARGETSELECTPATTERN = "${select} ${fields} ${from} ${table} ${where} ${condition}"
+            + " ${into} ${variable}";
     public static final String MODERNTARGETSELECTPATTERN = "${select} ${from} ${table} fields ${fields} ${where} ${condition}"
             + " ${into} ${variable}";
 
-    private String currentTable;
-    /**
-     * already contains line break
-     */
-    private boolean comments = false;
-    private int indentNumber = 2;
 
     public SelectNewStyle() {
         super();
 
-        // todo: include formating rules
-        IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode("org.eclipse.ui.editors");
-        Boolean bool = preferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
-                true);
-        int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
+//        // todo: include formating rules
+//        IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode("org.eclipse.ui.editors");
+//        Boolean bool = preferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
+//                true);
+//        int tabsno = preferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
     }
 
     public SelectNewStyle(boolean debug) {
@@ -72,42 +59,40 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         AbapStatement currentStatement = CodeReader.CurrentStatement;
         String statement = currentStatement.getStatement();
 
-        int beginOfStatement = currentStatement.getBeginOfStatement();
-        // CodeReader.CurrentStatement.statementTokens.get(i).offset;
-        @SuppressWarnings("restriction")
-        int beginOfStatementReplacement = AbapCodeReader.scannerServices
-                .getStatementTokens(AbapCodeReader.document, beginOfStatement).get(0).offset;
-
-        SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
+        Formatter formatter = new SelectFormat(statement.contains(SELECT_LOWER_CASE)); // guess case
 
         // remove all line feed characters and leading spaces
         String statementOneLine = statement.replaceAll("[\r\n]", "").trim();
 
         // replacement only if we want to convert to the new style
-        IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-        if (store.getBoolean(PreferenceConstants.NEW_STYLE)) {
+        if (StatementUtil.getInstance().isNewStyleSet()) {
             // do the actual replacement
             statementOneLine = statementOneLine.replaceFirst(getMatchPattern(), getReplacePattern());
         }
+        String originalIndentation = currentStatement.getLeadingCharacters().replaceAll("[\\s\\S]*[\\r\\n]", "");
+        indentationLength = originalIndentation.length();
 
-        // we need to remember the indentation -- remove everything until the last line
-        String leading = AbapCodeReader.getCode().substring(beginOfStatement, beginOfStatementReplacement);
-        String originalIndentation = leading.replaceAll(".*[\r\n]", "");
-        leading = leading.substring(0, leading.length() - originalIndentation.length());
+        // remember the current table, in order to determine order-by statement
+//        currentTable = statementOneLine.replaceFirst(getMatchPattern(), "${table}").replaceFirst("(.*)\s+as\s+.*", "$1")
+//                .trim();
+        
+        // do the actual replacement
+        String replacement = statementOneLine.replaceFirst(getMatchPattern(), getReplacePattern());
+
+        // self-defined prefix - from Preferences
+        StatementUtil util = StatementUtil.getInstance();
+        String prefix = util.getCommentPrefix(originalIndentation);
 
         // if preferences are set: produce a commented version of the original text
-        String comentedOut = StatementUtil.getCommentedOutStatement(statement, originalIndentation);
+        String commentedOut = util.getCommentedOutStatement(statement, originalIndentation);
 
         // format
-        String newStatement = formatter.format(originalIndentation, statementOneLine, "select");
+        String newStatement = formatter.format(originalIndentation, replacement, STATEMENT_START );
 
         // concatenate leading lines with automatic comment (if set in prefs)
         // as well as original statement (as comment, if set in prefs) and the new
         // statement
-        String prefix = StatementUtil.getCommentPrefix(originalIndentation);
-
-        return leading.concat(prefix.concat(comentedOut).concat(newStatement));
-
+        return prefix.concat(commentedOut).concat(newStatement);
     }
 
     @Override
@@ -121,15 +106,6 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         return "Replace old style SQL with new style for select/endselect.\n New style includes @ for variables and commas for lists.";
     }
 
-    private static Image icon;
-
-    @Override
-    public Image getAssistIcon() {
-        if (icon == null) {
-            icon = Activator.imageDescriptorFromPlugin(Activator.PLUGIN_ID, "icons/qfs4c16.png").createImage();
-        }
-        return icon;
-    }
 
     @Override
     public boolean canAssist() {
@@ -138,40 +114,20 @@ public class SelectNewStyle extends StatementAssistRegex implements IAssistRegex
         if (currentStatement.toLowerCase().contains("\ssingle\s") || currentStatement.contains("@")) {
             return false;
         }
-        if (Pattern.compile(getMatchPattern()).matcher(currentStatement.replaceAll("[\r\n]", "").trim()).find()) {
-            // table name to decide on order by clause
-
-            IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-            comments = store.getBoolean(PreferenceConstants.ADD_COMMENTS);
-            indentNumber = store.getInt(PreferenceConstants.INDENT);
-            // System.out.println("local preferences are: " + comments + " " +
-            // indent_number);
-
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public int getStartOfReplace() {
-        return CodeReader.CurrentStatement.getBeginOfStatementReplacement();
-    }
-
-    @Override
-    public int getReplaceLength() {
-        return CodeReader.CurrentStatement.getStatementLength();
+        return Pattern.compile(getMatchPattern()).matcher(currentStatement.replaceAll("[\r\n]", "").trim()).find();
     }
 
     @Override
     public String getMatchPattern() {
         return SELECTPATTERN;
-
     }
 
     @Override
     public String getReplacePattern() {
-        return MODERNTARGETSELECTPATTERN;
-
+        if (StatementUtil.getInstance().isNewStyleSet()) {
+            return MODERNTARGETSELECTPATTERN;
+        }
+        return TARGETSELECTPATTERN;
     }
 
 }

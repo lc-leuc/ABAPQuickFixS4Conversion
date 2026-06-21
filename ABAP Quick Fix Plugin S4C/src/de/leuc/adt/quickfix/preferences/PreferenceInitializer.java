@@ -14,6 +14,8 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         store.setDefault(PreferenceConstants.INDENT, 2);
         store.setDefault(PreferenceConstants.COMMENT_OUT, false);
         store.setDefault(PreferenceConstants.COMMENT_TEXT, "\"\">>> Begin of edit ${DATE}");
+        store.setDefault(PreferenceConstants.VDM_REPLACEMENTS_DIR, ".aqfs4c");
+        store.setDefault(PreferenceConstants.VDM_ALWAYS_ALLOW, false);
     }
 
 }

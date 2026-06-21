@@ -38,5 +38,17 @@
         <extension
               point="com.sap.adt.tools.core.ui.quickAssistProcessors">
         </extension>
+        <extension
+              point="com.sap.adt.tools.core.ui.projectLinkHandler">
+        </extension>
+        <extension
+              point="com.sap.adt.tools.abapsource.ui.adtSourceCodeScanners">
+        </extension>
+        <extension
+              point="org.eclipse.core.resources.builders">
+        </extension>
+        <extension
+              point="com.sap.adt.tools.abapsource.ui.sourceModelManager">
+        </extension>
 
 </plugin>

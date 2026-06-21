@@ -6,6 +6,10 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 ## Features
 
+#### Replace with VDM
+
+Replace select from table with select from VDM / Successor Object.
+
 #### Convert _select single_ into _select up to 1 rows with endselect_:
 
 <img src="https://user-images.githubusercontent.com/90344490/173096279-8fd57c8b-8732-49a0-8c39-f059f7363277.gif" width="80%">
@@ -24,6 +28,11 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 * Optional: use new syntax using _field_.
 
 ### Changes
+
+#### 1.5.0
+
+* Improve Formatter (aliasses, comma in lists).
+* Add replace by VDM.
 
 #### 1.4.4
 

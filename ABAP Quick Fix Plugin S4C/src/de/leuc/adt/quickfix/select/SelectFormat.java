@@ -13,7 +13,7 @@ import com.abapblog.adt.quickfix.assist.syntax.codeParser.AbapStatement;
  * @author lc
  *
  */
-public class SelectFormat {
+public class SelectFormat implements Formatter {
 
     private static final String SECONDLEVELOR = "     ";
     private static final String SECONDLEVELAND = "    ";
@@ -40,9 +40,10 @@ public class SelectFormat {
      */
 
     public boolean isLowerCase() {
- 
+
         return lowercase;
     }
+
     /**
      * Splits a select statement into an array of the components.
      * 
@@ -75,6 +76,7 @@ public class SelectFormat {
      *                            <code>select single</code>
      * @return - formatted statement
      */
+    @Override
     public String format(String originalIndentation, String replacement, String startWith) {
         // fallback
         String startWith2 = startWith;
@@ -110,11 +112,22 @@ public class SelectFormat {
         if (in2.startsWith(start)) {
             if (!in2.equals(start)) {
                 String selection = in.replaceFirst("(?i)" + start + "\s+(.*)", "$1").trim();
-                if (selection.contains(" ") && !selection.contains(",")) {
+                if (selection.contains(" ") && !selection.contains(",")) {// already in new style field list (with
+                                                                          // comma)
                     // prevent commas around 'as', 'distinct' and functions/'(' - negative look
                     // behind and negative look ahead
+                    int index = selection.indexOf("\"");
+
+                    String selectionCode = selection;
+                    String selectionComment = "";
+                    if (index > 0) {
+                        selectionCode = selection.substring(0, index);
+                        selectionComment = selection.substring(index, selection.length());
+                    }
                     in = transformCase(start)
-                            .concat(" ".concat(selection.replaceAll("(?<!,| as|\\(| distinct)\\s+(?!as |\\))", ", ")));
+                            .concat(" ".concat(selectionCode.trim()
+                                    .replaceAll("(?<!,| as|single|\\(| distinct)\\s+(?!as |\\))", ", ")))
+                            .concat(" ".concat(selectionComment));
                 }
             }
             return indentation + in.trim();
@@ -131,6 +144,7 @@ public class SelectFormat {
             in = transformCase("fields ").concat(fields.replaceAll("(?<!,| as|\\(| distinct)\\s+(?!as |\\))", ", "));
             // }
             return originalIndentation + FIRSTLEVEL + in.trim();
+
         } else if (in2.startsWith("where ")) {
             return originalIndentation + FIRSTLEVEL + adaptNewStyle(in).trim();
         } else if (in2.startsWith("and ")) {
@@ -147,12 +161,13 @@ public class SelectFormat {
         } else if (in2.startsWith("into ")) {
             return originalIndentation + FIRSTLEVEL + adaptInto(in2).trim();
         } else if (in2.startsWith("group by ")) {
-            return originalIndentation + FIRSTLEVEL + in2.trim();
+            String groupByList = in.replaceFirst("(?i)group by\s+(.*)", "$1").trim();
+            return originalIndentation + FIRSTLEVEL + transformCase("group by ").concat(commify(groupByList)).trim();
         } else if (in2.startsWith("order by primary key")) {
             return originalIndentation + FIRSTLEVEL + transformCase(in).trim();
         } else if (in2.startsWith("order by ")) {
             String orderByList = in.replaceFirst("(?i)order by\s+(.*)", "$1").trim();
-            return originalIndentation + FIRSTLEVEL + transformCase("order by ").concat(orderByList).trim();
+            return originalIndentation + FIRSTLEVEL + transformCase("order by ").concat(commify(orderByList)).trim();
         } else if (in2.startsWith("endselect")) {
             // no additional line break
             return originalIndentation + transformCase(in2).trim();
@@ -188,14 +203,14 @@ public class SelectFormat {
         String prefix = in.replaceFirst("(?i)(" + keyWord + ")\s+(.*)", "$1").concat(" ");
         String temp = in.replaceFirst("(?i)(" + keyWord + ")\s+(.*)", "$2");
 
-        // replace into (tkonn, tposn) with into (@tkonn, @tposn)
-        String temp2 = transformCase(prefix).concat(temp.replaceAll("(^\\(|^|[ ,])([<a-zA-Z0-9_])", "$1@$2"));
+        String temp2;
+        temp2 = transformCase(prefix).concat(commify(adaptIntoCorrespondingFieldsOf(temp)));
         return temp2;
     }
 
     private String adaptIntoCorrespondingFieldsOf(String in) {
         // replace into (tkonn, tposn) with into (@tkonn, @tposn)
-        return in.replaceAll("( \\(|[ ,])([<a-zA-Z0-9_])", "$1@$2");
+        return in.trim().replaceAll("(^\\(|[ ,]|^)([<a-zA-Z0-9_])", "$1@$2");
     }
 
     private String adaptNewStyle(String in) {
@@ -204,7 +219,11 @@ public class SelectFormat {
         if (in.contains("@")) {
             return in;
         }
-        String replaceFirst = in.replaceFirst("([a-zA-Z]+) (\\( )?([a-zA-Z0-9_]+) (..?) ([-<a-zA-Z0-9_+\\(\\)]+)( \\))?", "$1 $2$3 $4 @$5$6");
+        String replaceFirst = in;
+        if (!in.matches("\\s*([a-zA-Z]+) (\\( )?([a-zA-Z0-9_]+) (..?)( not)? initial( \\))?")) {
+            replaceFirst = in.replaceFirst("([a-zA-Z]+) (\\( )?([a-zA-Z0-9_~]+) (..?) ([-<a-zA-Z0-9_+\\(\\)]+)( \\))?",
+                    "$1 $2$3 $4 @$5$6");
+        }
         return replaceFirst;
     }
 
@@ -212,4 +231,22 @@ public class SelectFormat {
         return currentStatement.replaceAllPattern("([\r\n])\\*.*([\r\n])", "$1$2");
     }
 
+    private String commify(String in) {
+        String out = in;
+        if (in.contains(" ") && !in.contains(",")) {// already in new style field list (with comma)
+            // prevent commas around 'as', 'distinct' and functions/'(' - negative look
+            // behind and negative look ahead
+            int index = in.indexOf("\"");
+
+            String list = in;
+            String selectionComment = "";
+            if (index > 0) {
+                list = in.substring(0, index);
+                selectionComment = in.substring(index, in.length());
+            }
+            out = list.trim().replaceAll("(?<!,| as|single|\\(| distinct)\\s+(?!as |\\)|ascending|descending)", ", ")
+                    .concat(" ".concat(selectionComment));
+        }
+        return out;
+    }
 }

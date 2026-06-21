@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import com.abapblog.adt.quickfix.assist.syntax.statements.StatementAssistRegex;
 
+import de.leuc.adt.quickfix.select.Formatter;
 import de.leuc.adt.quickfix.select.SelectFormat;
 
 /**
@@ -78,7 +79,7 @@ public abstract class AbstractTest {
                     Pattern pattern = Pattern.compile(selectPattern, Pattern.MULTILINE);
                     Matcher matcher = pattern.matcher(statement);
     
-                    SelectFormat formatter = new SelectFormat(statement.contains("select")); // guess case
+                    Formatter formatter = new SelectFormat(statement.contains("select")); // guess case
     
                     // remove all line feed characters and leading spaces
                     statement = statement.replaceAll("[\r\n]", "").trim();

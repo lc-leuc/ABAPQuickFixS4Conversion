@@ -52,6 +52,12 @@ public class QuickFixS4CPreferences extends FieldEditorPreferencePage implements
                 "&Indentations in select statements", leucGroup, 2));
         addField(new org.eclipse.jface.preference.StringFieldEditor(PreferenceConstants.COMMENT_TEXT,
                 "&Comment text for changes", 70, leucGroup));
+        Group vdmGroup = new Group(top, SWT.SHADOW_ETCHED_IN);
+        vdmGroup.setText("VDM Replacements.");
+        addField(new org.eclipse.jface.preference.StringFieldEditor(PreferenceConstants.VDM_REPLACEMENTS_DIR,
+                "&Additional replacements folder", 70, vdmGroup));
+        addField(new BooleanFieldEditor(PreferenceConstants.VDM_ALWAYS_ALLOW,
+                "&Always allow replacement (might brake syntax)", vdmGroup));
 
     }
 

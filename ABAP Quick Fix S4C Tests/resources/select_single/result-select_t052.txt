@@ -1,0 +1,6 @@
+    select *
+      from t052
+      where zterm = @i_contract_data_sd-sd_hd_gen-zterm
+      into corresponding fields of @ls_t052
+      up to 1 rows.
+    endselect

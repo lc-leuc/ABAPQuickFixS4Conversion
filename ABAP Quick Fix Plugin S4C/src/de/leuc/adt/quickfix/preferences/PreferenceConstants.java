@@ -7,5 +7,7 @@ public class PreferenceConstants {
     public static final String COMMENT_OUT = "deleucCommentOut";
     public static final String COMMENT_TEXT = "deleucCommentText";
     public static final String NEW_STYLE = "deleucNewStyle";
+    public static final String VDM_REPLACEMENTS_DIR = "deleucVDMReplacementsDir";
+    public static final String VDM_ALWAYS_ALLOW = "deleucVDMAllowBreaking";
 
 }

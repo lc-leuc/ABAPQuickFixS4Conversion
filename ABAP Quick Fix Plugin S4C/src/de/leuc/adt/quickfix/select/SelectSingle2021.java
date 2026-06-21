@@ -1,7 +1,5 @@
 package de.leuc.adt.quickfix.select;
 
-import com.abapblog.adt.quickfix.assist.syntax.statements.IAssistRegex;
-
 import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
 
 /**
@@ -14,7 +12,7 @@ import de.leuc.adt.quickfix.preferences.OrderByPrefParser;
  * @author lc
  *
  */
-public class SelectSingle2021 extends SelectSingle implements IAssistRegex {
+public class SelectSingle2021 extends SelectSingle {
 
     private static final String ORDER_BY_PRIMARY_KEY = " order by primary key";
 
