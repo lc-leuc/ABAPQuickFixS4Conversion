@@ -10,6 +10,8 @@ ABAP Quick Fix Additions for S4 Conversion Projects.
 
 Replace select from table with select from VDM / Successor Object.
 
+<img width="500" height="121" alt="Image" src="https://github.com/user-attachments/assets/d8eb6eb0-ed1f-4261-82b5-8e698f9a2bf9" />
+
 #### Convert _select single_ into _select up to 1 rows with endselect_:
 
 <img src="https://user-images.githubusercontent.com/90344490/173096279-8fd57c8b-8732-49a0-8c39-f059f7363277.gif" width="80%">
