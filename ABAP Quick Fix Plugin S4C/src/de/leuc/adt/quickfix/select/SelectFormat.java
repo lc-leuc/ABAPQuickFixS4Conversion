@@ -126,7 +126,7 @@ public class SelectFormat implements Formatter {
                     }
                     in = transformCase(start)
                             .concat(" ".concat(selectionCode.trim()
-                                    .replaceAll("(?<!,| as|single|\\(| distinct)\\s+(?!as |\\))", ", ")))
+                                    .replaceAll("(?i)(?<!,| as|single|\\(| distinct)\\s+(?!as |\\))", ", ")))
                             .concat(" ".concat(selectionComment));
                 }
             }
@@ -141,7 +141,7 @@ public class SelectFormat implements Formatter {
             String fields = in.replaceFirst("(?i)fields\s+(.*)", "$1").trim();
             // prevent commas around 'as', 'distinct' and functions/'(' - negative look
             // behind and negative look ahead
-            in = transformCase("fields ").concat(fields.replaceAll("(?<!,| as|\\(| distinct)\\s+(?!as |\\))", ", "));
+            in = transformCase("fields ").concat(fields.replaceAll("(?i)(?<!,| as|\\(| distinct)\\s+(?!as |\\))", ", "));
             // }
             return originalIndentation + FIRSTLEVEL + in.trim();
 

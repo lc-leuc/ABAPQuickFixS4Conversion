@@ -295,14 +295,14 @@ public class SelectReplaceWithVDM extends StatementAssistRegexS4C {
 
         String condition = remaining.replaceFirst("(?i)\\s+(?<fields>.*)\\s+(?<groupby>group by)(?<group>.*)",
                 "${fields}");
-        if (condition.contains("order by")) {
+        if (condition.toLowerCase().contains("order by")) {
             orderby = condition.replaceFirst("(?i)\\s+(?<fields>.*)\\s+(?<orderby>order by)(?<order>.*)", "${order}");
             condition = condition.replaceFirst("(?i)\\s+(?<fields>.*)\\s+(?<orderby>order by)(?<order>.*)",
                     "${fields}");
         }
         String groupby = "";
 
-        if (condition.contains("group by")) {
+        if (condition.toLowerCase().contains("group by")) {
             groupby = condition.replaceFirst("(?i)\\s+(?<fields>.*)\\s+(?<groupby>group by)(?<group>.*)", "${group}");
             if (condition.contains("oder by")) {
                 orderby = groupby.replaceFirst("(?i)\\s+(?<fields>.*)\\s+(?<orderby>order by)(?<order>.*)", "${oder}");
